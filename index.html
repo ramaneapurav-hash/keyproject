@@ -1364,7 +1364,8 @@ function changePass(){
 // ============================================================
 //  CONTACT FORM  — stores every submission
 // ============================================================
-let messages = []; // persists while page is open
+// Load messages from localStorage so they survive page refresh
+let messages = JSON.parse(localStorage.getItem('kpa_messages') || '[]');
 
 function submitForm(){
   const name  = (document.getElementById('fn')||{}).value||'';
@@ -1386,6 +1387,7 @@ function submitForm(){
     read: false
   };
   messages.unshift(entry); // newest first
+  localStorage.setItem('kpa_messages', JSON.stringify(messages));
 
   // clear form
   ['fn','fe'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -1471,6 +1473,7 @@ function openMsg(id){
   var m=messages.find(function(x){return x.id===id;});
   if(!m) return;
   m.read=true;
+  localStorage.setItem('kpa_messages', JSON.stringify(messages));
   updateMsgBadge();
   renderMsgList();
 
@@ -1500,12 +1503,14 @@ document.addEventListener('click',function(e){
 
 function deleteMsg(id){
   messages=messages.filter(function(m){return m.id!==id;});
+  localStorage.setItem('kpa_messages', JSON.stringify(messages));
   updateMsgBadge();
   renderMsgList();
 }
 
 function markAllRead(){
   messages.forEach(function(m){m.read=true;});
+  localStorage.setItem('kpa_messages', JSON.stringify(messages));
   updateMsgBadge();
   renderMsgList();
 }
