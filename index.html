@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key Project Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--black:#0a0a0a;--white:#f5f2ee;--gold:#c9a96e;--gold-light:#e8d5b0;--dark:#141414;--gray:#888;--lg:#ccc;--fd:'Cormorant Garamond',serif;--fb:'DM Sans',sans-serif;--tr:0.4s cubic-bezier(.25,.46,.45,.94);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:var(--fb);font-weight:300;overflow-x:hidden;cursor:none;}
+
+/* CURSOR */
+.cur{position:fixed;width:8px;height:8px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .1s;}
+.cur-f{position:fixed;width:36px;height:36px;border:1px solid rgba(201,169,110,.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .15s ease;}
+.cur.ex{transform:translate(-50%,-50%) scale(3);opacity:.3;}
+.cur-f.ex{transform:translate(-50%,-50%) scale(1.5);border-color:var(--gold);}
+
+/* NAV */
+#sitenav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:24px 60px;display:flex;align-items:center;justify-content:space-between;transition:var(--tr);}
+#sitenav.sc{background:rgba(10,10,10,.96);backdrop-filter:blur(20px);padding:16px 60px;border-bottom:1px solid rgba(201,169,110,.1);}
+.nlogo{font-family:var(--fd);font-size:22px;font-weight:500;letter-spacing:.08em;color:var(--white);text-decoration:none;cursor:none;display:flex;align-items:center;gap:10px;}
+.nlogo-img{height:36px;width:36px;object-fit:contain;border-radius:2px;display:none;}
+.nlogo span{color:var(--gold);}
+.nlinks{display:flex;gap:40px;list-style:none;}
+.nlinks a{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--lg);text-decoration:none;cursor:none;transition:color var(--tr);position:relative;}
+.nlinks a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--gold);transition:width var(--tr);}
+.nlinks a:hover{color:var(--gold);}.nlinks a:hover::after{width:100%;}
+.hbg{display:none;flex-direction:column;gap:5px;cursor:none;}
+.hbg span{width:24px;height:1px;background:var(--white);transition:var(--tr);display:block;}
+
+/* HERO */
+#hero{height:100vh;display:flex;align-items:flex-end;padding:80px 60px;position:relative;overflow:hidden;}
+.hbg2{position:absolute;inset:0;background:linear-gradient(135deg,#0a0a0a,#1a1510 50%,#0a0a0a);}
+.hbg2::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23c9a96e' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");}
+.hline{position:absolute;top:0;right:160px;width:1px;height:0;background:linear-gradient(to bottom,transparent,var(--gold),transparent);animation:lg 2s .5s forwards ease-out;}
+@keyframes lg{to{height:100%;}}
+.hcon{position:relative;z-index:1;max-width:800px;}
+.hey{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:24px;opacity:0;animation:fu 1s .3s forwards;}
+.ht{font-family:var(--fd);font-size:clamp(60px,8vw,110px);font-weight:300;line-height:.95;letter-spacing:-.02em;margin-bottom:32px;opacity:0;animation:fu 1s .5s forwards;}
+.ht em{font-style:italic;color:var(--gold);}
+.hs{font-size:14px;color:var(--gray);max-width:400px;line-height:1.8;margin-bottom:48px;opacity:0;animation:fu 1s .7s forwards;}
+.hcta{display:flex;gap:24px;align-items:center;opacity:0;animation:fu 1s .9s forwards;}
+.btn1{background:var(--gold);color:var(--black);padding:16px 40px;font-size:12px;letter-spacing:.15em;text-transform:uppercase;text-decoration:none;cursor:none;font-family:var(--fb);font-weight:500;transition:all var(--tr);border:none;}
+.btn1:hover{background:var(--gold-light);transform:translateY(-2px);}
+.btn2{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--white);text-decoration:none;cursor:none;display:flex;align-items:center;gap:12px;transition:color var(--tr);}
+.btn2::after{content:'→';transition:transform var(--tr);}
+.btn2:hover{color:var(--gold);}.btn2:hover::after{transform:translateX(6px);}
+.hstats{position:absolute;right:60px;bottom:80px;display:flex;flex-direction:column;gap:32px;text-align:right;opacity:0;animation:fi 1s 1.2s forwards;}
+.snum{font-family:var(--fd);font-size:42px;font-weight:300;color:var(--gold);line-height:1;}
+.slbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-top:4px;}
+.scroll-i{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fi 1s 1.5s forwards;}
+.sline{width:1px;height:60px;background:linear-gradient(to bottom,var(--gold),transparent);animation:sp 2s infinite;}
+@keyframes fu{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes sp{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* SECTIONS */
+section{padding:120px 60px;}
+.eyebrow{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;}
+.stitle{font-family:var(--fd);font-size:clamp(36px,4vw,60px);font-weight:300;line-height:1.1;}
+.stitle em{font-style:italic;color:var(--gold);}
+
+/* ABOUT */
+#about{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+.aim{position:relative;height:600px;}
+.aim1{width:80%;height:100%;background:#1a1a1a;border:1px solid rgba(201,169,110,.2);overflow:hidden;position:relative;}
+.aim1 img,.aim2 img{width:100%;height:100%;object-fit:cover;display:block;}
+.aim2{position:absolute;bottom:-30px;right:0;width:55%;height:280px;background:#111;border:1px solid rgba(201,169,110,.3);overflow:hidden;}
+.agold{position:absolute;top:40px;left:-20px;width:3px;height:120px;background:var(--gold);}
+.acon p{font-size:15px;line-height:2;color:rgba(245,242,238,.7);margin-top:28px;}
+.acon{padding-right:20px;}
+.afeat{margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.afi{border-top:1px solid rgba(201,169,110,.2);padding-top:20px;}
+.afn{font-family:var(--fd);font-size:36px;font-weight:300;color:var(--gold);}
+.afl{font-size:12px;color:var(--gray);margin-top:4px;letter-spacing:.05em;}
+
+/* PROJECTS */
+#projects{background:#080808;padding:120px 60px;}
+.ph{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:70px;}
+.pgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px;}
+.pcard{position:relative;overflow:hidden;cursor:none;background:#111;border:1px solid rgba(201,169,110,.1);}
+.pcard:nth-child(1){grid-column:1/8;height:520px;}
+.pcard:nth-child(2){grid-column:8/13;height:520px;}
+.pcard:nth-child(3){grid-column:1/5;height:380px;}
+.pcard:nth-child(4){grid-column:5/9;height:380px;}
+.pcard:nth-child(5){grid-column:9/13;height:380px;}
+.pcard:nth-child(n+6){grid-column:span 4;height:380px;}
+.pimg{width:100%;height:100%;object-fit:cover;display:block;transition:transform .8s cubic-bezier(.25,.46,.45,.94);}
+.pov{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,10,.95),transparent 60%);opacity:0;transition:opacity var(--tr);display:flex;flex-direction:column;justify-content:flex-end;padding:32px;}
+.pcard:hover .pov{opacity:1;}.pcard:hover .pimg{transform:scale(1.06);}
+.pcat{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.pname{font-family:var(--fd);font-size:28px;font-weight:300;}
+.ploc{font-size:12px;color:var(--gray);margin-top:6px;}
+.pph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(201,169,110,.2);font-size:11px;letter-spacing:.2em;text-transform:uppercase;gap:12px;}
+
+/* SERVICES */
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:60px;}
+.si{padding:48px 40px;border:1px solid rgba(201,169,110,.1);transition:all var(--tr);position:relative;overflow:hidden;}
+.si::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,169,110,.05),transparent);opacity:0;transition:opacity var(--tr);}
+.si:hover{border-color:rgba(201,169,110,.4);}.si:hover::before{opacity:1;}
+.sinum{font-family:var(--fd);font-size:48px;font-weight:300;color:rgba(201,169,110,.2);line-height:1;margin-bottom:24px;}
+.siname{font-family:var(--fd);font-size:24px;font-weight:400;margin-bottom:16px;}
+.sidesc{font-size:13px;color:var(--gray);line-height:1.8;}
+
+/* PROCESS */
+#process{background:#080808;padding:120px 60px;}
+.psteps{display:grid;grid-template-columns:repeat(4,1fr);margin-top:80px;position:relative;}
+.psteps::before{content:'';position:absolute;top:32px;left:5%;right:5%;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);}
+.pstep{padding:0 32px;text-align:center;}
+.stepn{width:64px;height:64px;border:1px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 28px;font-family:var(--fd);font-size:22px;font-weight:300;color:var(--gold);background:var(--black);position:relative;z-index:1;}
+.stept{font-family:var(--fd);font-size:20px;font-weight:400;margin-bottom:12px;}
+.stepd{font-size:12px;color:var(--gray);line-height:1.8;}
+
+/* TESTIMONIALS */
+.ttrack{display:flex;gap:32px;margin-top:60px;animation:st 30s linear infinite;width:max-content;}
+.ttrack:hover{animation-play-state:paused;}
+@keyframes st{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tc{width:400px;flex-shrink:0;padding:40px;border:1px solid rgba(201,169,110,.15);background:#0d0d0d;}
+.tq{font-family:var(--fd);font-size:20px;font-weight:300;line-height:1.6;font-style:italic;margin-bottom:28px;color:rgba(245,242,238,.85);}
+.ta{display:flex;align-items:center;gap:16px;}
+.tav{width:44px;height:44px;border-radius:50%;background:rgba(201,169,110,.15);border:1px solid rgba(201,169,110,.3);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:16px;color:var(--gold);}
+.tn{font-size:13px;font-weight:500;}.tr{font-size:11px;color:var(--gray);margin-top:2px;}
+
+/* CONTACT */
+#contact{background:#080808;padding:120px 60px;display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:start;}
+.ci h2{margin-bottom:24px;}.ci p{font-size:14px;color:var(--gray);line-height:1.9;margin-bottom:48px;}
+.cdet{display:flex;flex-direction:column;gap:24px;}
+.cdi{display:flex;gap:20px;align-items:flex-start;}
+.cico{width:40px;height:40px;border:1px solid rgba(201,169,110,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold);font-size:16px;}
+.cdl{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;}
+.cdv{font-size:14px;color:var(--white);}
+.slinks{display:flex;gap:16px;margin-top:48px;}
+.sl{width:44px;height:44px;border:1px solid rgba(201,169,110,.2);display:flex;align-items:center;justify-content:center;color:var(--gray);text-decoration:none;cursor:none;font-size:18px;transition:all var(--tr);}
+.sl:hover{border-color:var(--gold);color:var(--gold);}
+.cf{display:flex;flex-direction:column;gap:20px;}
+.fg{position:relative;}.fg label{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-bottom:10px;}
+.fg input,.fg textarea,.fg select{width:100%;background:transparent;border:0;border-bottom:1px solid rgba(201,169,110,.2);padding:12px 0;color:var(--white);font-family:var(--fb);font-size:14px;outline:none;transition:border-color var(--tr);resize:none;}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--gold);}
+.fg select option{background:var(--dark);}.fg textarea{height:100px;}
+.fsub{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:16px 40px;font-family:var(--fb);font-size:12px;letter-spacing:.15em;text-transform:uppercase;cursor:none;transition:all var(--tr);align-self:flex-start;margin-top:8px;}
+.fsub:hover{background:var(--gold);color:var(--black);}
+
+/* FOOTER */
+footer{padding:60px 60px 40px;border-top:1px solid rgba(201,169,110,.1);}
+.fgrid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:60px;margin-bottom:60px;}
+.fb p{font-size:13px;color:var(--gray);line-height:1.8;margin-top:16px;max-width:280px;}
+.fc h4{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;}
+.fc ul{list-style:none;display:flex;flex-direction:column;gap:12px;}
+.fc ul li a{font-size:13px;color:var(--gray);text-decoration:none;cursor:none;transition:color var(--tr);}
+.fc ul li a:hover{color:var(--white);}
+.fbot{display:flex;justify-content:space-between;align-items:center;padding-top:32px;border-top:1px solid rgba(255,255,255,.05);}
+.fbot p{font-size:12px;color:rgba(136,136,136,.6);}
+.fleg{display:flex;gap:24px;}
+.fleg a{font-size:12px;color:rgba(136,136,136,.6);text-decoration:none;cursor:none;transition:color var(--tr);}
+.fleg a:hover{color:var(--gold);}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s;}
+.rv.vi{opacity:1;transform:translateY(0);}
+.d1{transition-delay:.1s;}.d2{transition-delay:.2s;}.d3{transition-delay:.3s;}.d4{transition-delay:.4s;}
+
+/* MOBILE MENU */
+.mmenu{position:fixed;inset:0;background:rgba(10,10,10,.98);z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;opacity:0;pointer-events:none;transition:opacity var(--tr);}
+.mmenu.open{opacity:1;pointer-events:all;}
+.mmenu a{font-family:var(--fd);font-size:42px;font-weight:300;color:var(--white);text-decoration:none;cursor:none;transition:color var(--tr);}
+.mmenu a:hover{color:var(--gold);}
+
+/* NOTIFICATION */
+.notif{position:fixed;bottom:32px;right:32px;background:#111;border:1px solid var(--gold);padding:16px 24px;font-size:13px;color:var(--white);z-index:99999;transform:translateY(100px);opacity:0;transition:all var(--tr);max-width:320px;}
+.notif.show{transform:translateY(0);opacity:1;}
+
+/* LOADER */
+#loader{position:fixed;inset:0;background:var(--black);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;transition:opacity .8s;}
+#loader.done{opacity:0;pointer-events:none;}
+.ll{font-family:var(--fd);font-size:32px;font-weight:300;letter-spacing:.1em;color:var(--gold);}
+.lbw{width:200px;height:1px;background:rgba(201,169,110,.2);}
+.lb{height:100%;width:0;background:var(--gold);animation:lf 2.2s ease forwards;}
+@keyframes lf{to{width:100%;}}
+
+/* LEGAL PAGES */
+.lpage{max-width:800px;margin:0 auto;padding:140px 60px 80px;}
+.lpage h1{font-family:var(--fd);font-size:52px;font-weight:300;margin-bottom:12px;}
+.ldate{font-size:13px;color:var(--gray);margin-bottom:60px;}
+.lpage h2{font-family:var(--fd);font-size:26px;font-weight:400;color:var(--gold);margin:48px 0 16px;}
+.lpage p{font-size:14px;line-height:2;color:rgba(245,242,238,.7);margin-bottom:16px;}
+.lpage ul{margin:16px 0 16px 24px;}
+.lpage ul li{font-size:14px;line-height:2;color:rgba(245,242,238,.7);margin-bottom:8px;}
+
+/* ========================
+   ADMIN — injected only after login
+   ======================== */
+
+/* LOGIN SCREEN */
+.al-wrap{min-height:100vh;background:#070707;display:flex;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden;}
+.al-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(201,169,110,.04),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(201,169,110,.03),transparent 50%);}
+.al-card{background:#0f0f0f;border:1px solid rgba(201,169,110,.15);padding:60px;width:100%;max-width:440px;position:relative;z-index:1;}
+.al-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--gold),transparent);}
+.al-logo{font-family:var(--fd);font-size:20px;font-weight:500;letter-spacing:.1em;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
+.al-logo img{height:30px;width:30px;object-fit:contain;display:none;}
+.al-logo span{color:var(--gold);}
+.al-sub{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:48px;}
+.al-field{margin-bottom:18px;}
+.al-field label{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;}
+.al-field input{width:100%;background:rgba(255,255,255,.02);border:1px solid rgba(201,169,110,.12);padding:14px 18px;color:var(--white);font-family:var(--fb);font-size:14px;outline:none;transition:border-color var(--tr);}
+.al-field input:focus{border-color:rgba(201,169,110,.5);}
+.al-btn{width:100%;background:var(--gold);border:none;color:var(--black);padding:16px;font-family:var(--fb);font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:500;cursor:pointer;transition:all var(--tr);margin-top:10px;}
+.al-btn:hover{background:var(--gold-light);}
+.al-err{color:#e74c3c;font-size:12px;margin-top:12px;display:none;text-align:center;}
+.al-back{display:block;text-align:center;margin-top:24px;font-size:12px;color:var(--gray);text-decoration:none;cursor:pointer;transition:color var(--tr);}
+.al-back:hover{color:var(--gold);}
+.al-hint{margin-top:20px;padding:12px 16px;background:rgba(201,169,110,.04);border:1px solid rgba(201,169,110,.08);font-size:11px;color:rgba(136,136,136,.6);text-align:center;}
+
+/* DASHBOARD */
+.adash{min-height:100vh;background:#080808;display:flex;flex-direction:column;}
+.dh{background:#0d0d0d;border-bottom:1px solid rgba(201,169,110,.1);padding:0 32px;display:flex;align-items:center;height:64px;gap:0;flex-shrink:0;}
+.dh-logo{font-family:var(--fd);font-size:18px;font-weight:400;display:flex;align-items:center;gap:8px;margin-right:32px;white-space:nowrap;}
+.dh-logo img{height:26px;width:26px;object-fit:contain;display:none;}
+.dh-logo span{color:var(--gold);}
+.dnav{display:flex;gap:0;flex:1;overflow-x:auto;}
+.dnb{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--gray);padding:0 18px;font-size:12px;letter-spacing:.08em;cursor:pointer;font-family:var(--fb);height:64px;white-space:nowrap;transition:all .2s;}
+.dnb:hover{color:var(--white);}.dnb.on{color:var(--gold);border-bottom-color:var(--gold);}
+.dh-act{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0;}
+.dprev{font-size:12px;color:var(--gold);background:transparent;border:1px solid rgba(201,169,110,.3);padding:8px 16px;cursor:pointer;font-family:var(--fb);transition:all var(--tr);}
+.dprev:hover{background:rgba(201,169,110,.1);}
+.dlout{font-size:12px;color:var(--gray);background:transparent;border:1px solid rgba(255,255,255,.08);padding:8px 16px;cursor:pointer;font-family:var(--fb);transition:all var(--tr);}
+.dlout:hover{border-color:rgba(201,169,110,.3);color:var(--gold);}
+
+.dbody{display:flex;flex:1;overflow:hidden;}
+.dsb{width:210px;background:#0a0a0a;border-right:1px solid rgba(201,169,110,.07);padding:20px 0;flex-shrink:0;overflow-y:auto;}
+.dsb-lbl{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(136,136,136,.4);padding:8px 20px;margin-bottom:2px;}
+.dsb-btn{width:100%;background:transparent;border:none;color:var(--gray);padding:10px 20px;font-size:13px;text-align:left;cursor:pointer;font-family:var(--fb);transition:all .2s;display:flex;align-items:center;gap:10px;}
+.dsb-btn:hover{background:rgba(201,169,110,.06);color:var(--white);}
+.dsb-btn.on{background:rgba(201,169,110,.1);color:var(--gold);}
+.dsb-ico{width:14px;text-align:center;font-size:13px;}
+
+.dmain{flex:1;overflow-y:auto;padding:32px 40px;}
+.dpanel{display:none;}.dpanel.on{display:block;}
+.ptitle{font-family:var(--fd);font-size:32px;font-weight:300;margin-bottom:8px;}
+.ptitle em{font-style:italic;color:var(--gold);}
+.psub{font-size:13px;color:var(--gray);margin-bottom:32px;}
+
+/* EDITOR CARDS */
+.egrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;}
+.ecard{background:#0f0f0f;border:1px solid rgba(201,169,110,.1);padding:24px;border-radius:2px;}
+.ectitle{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.ectitle::before{content:'';width:16px;height:1px;background:var(--gold);opacity:.5;}
+.ef{margin-bottom:14px;}
+.ef label{display:block;font-size:11px;color:rgba(136,136,136,.8);margin-bottom:5px;}
+.ef input,.ef textarea,.ef select{width:100%;background:rgba(255,255,255,.02);border:1px solid rgba(201,169,110,.1);padding:9px 12px;color:var(--white);font-family:var(--fb);font-size:13px;outline:none;transition:border-color var(--tr);resize:vertical;border-radius:2px;}
+.ef input:focus,.ef textarea:focus,.ef select:focus{border-color:rgba(201,169,110,.4);}
+.ef textarea{min-height:72px;}
+.ef select option{background:#111;}
+.er{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sbtn{background:var(--gold);border:none;color:var(--black);padding:10px 22px;font-family:var(--fb);font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:500;cursor:pointer;transition:all var(--tr);border-radius:2px;margin-top:4px;}
+.sbtn:hover{background:var(--gold-light);}
+.sbtn.gh{background:transparent;border:1px solid rgba(201,169,110,.3);color:var(--gold);}
+.sbtn.gh:hover{background:rgba(201,169,110,.08);}
+.ssucc{display:none;font-size:11px;color:#2ecc71;margin-top:8px;}
+
+/* LOGO UPLOAD */
+.lup{border:2px dashed rgba(201,169,110,.15);padding:28px;text-align:center;cursor:pointer;transition:all var(--tr);position:relative;border-radius:2px;}
+.lup:hover{border-color:rgba(201,169,110,.4);background:rgba(201,169,110,.02);}
+.lup input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.lprev{width:80px;height:80px;margin:0 auto 14px;background:#1a1a1a;border:1px solid rgba(201,169,110,.2);border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.lprev img{width:100%;height:100%;object-fit:contain;}
+.luptxt{font-size:12px;color:var(--gray);}
+.luptxt strong{color:var(--gold);}
+
+/* COLOR SWATCHES */
+.cswatches{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.csw{width:34px;height:34px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .2s;}
+.csw.on,.csw:hover{border-color:var(--white);transform:scale(1.1);}
+
+/* OVERVIEW STATS */
+.ovstats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.ovs{background:#0f0f0f;border:1px solid rgba(201,169,110,.1);padding:22px;text-align:center;}
+.ovs-n{font-family:var(--fd);font-size:38px;font-weight:300;color:var(--gold);}
+.ovs-l{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-top:5px;}
+
+/* PROJECT MANAGER */
+.plist{display:flex;flex-direction:column;gap:10px;}
+.prow{background:#111;border:1px solid rgba(201,169,110,.08);padding:14px 18px;display:grid;grid-template-columns:60px 1fr 1fr 1fr auto;gap:12px;align-items:center;border-radius:2px;}
+.pthumb{width:60px;height:60px;background:#1a1a1a;border:1px solid rgba(201,169,110,.1);overflow:hidden;position:relative;cursor:pointer;border-radius:2px;flex-shrink:0;}
+.pthumb img{width:100%;height:100%;object-fit:cover;}
+.pthumb input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.pthumb-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(201,169,110,.2);}
+.pinput{background:transparent;border:none;border-bottom:1px solid rgba(201,169,110,.1);padding:4px 0;color:var(--white);font-family:var(--fb);font-size:13px;outline:none;transition:border-color .2s;width:100%;}
+.pinput:focus{border-bottom-color:var(--gold);}
+.delbtn{background:transparent;border:1px solid rgba(231,76,60,.2);color:rgba(231,76,60,.6);padding:6px 12px;cursor:pointer;font-size:12px;font-family:var(--fb);transition:all .2s;border-radius:2px;white-space:nowrap;}
+.delbtn:hover{background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.5);color:#e74c3c;}
+.addpbtn{display:flex;align-items:center;gap:8px;background:transparent;border:1px dashed rgba(201,169,110,.2);color:var(--gold);padding:12px 20px;cursor:pointer;font-size:12px;font-family:var(--fb);letter-spacing:.1em;transition:all var(--tr);width:100%;justify-content:center;border-radius:2px;margin-top:8px;}
+.addpbtn:hover{background:rgba(201,169,110,.05);border-color:rgba(201,169,110,.4);}
+
+/* SOCIAL ROW */
+.soclist{display:flex;flex-direction:column;gap:10px;}
+.socrow{display:grid;grid-template-columns:40px 110px 1fr;gap:14px;align-items:center;background:#111;border:1px solid rgba(201,169,110,.07);padding:12px 18px;border-radius:2px;}
+.socico{width:34px;height:34px;border:1px solid rgba(201,169,110,.2);display:flex;align-items:center;justify-content:center;border-radius:4px;}
+.socname{font-size:13px;color:var(--white);}
+.socurl{background:transparent;border:none;border-bottom:1px solid rgba(201,169,110,.1);padding:4px 0;color:var(--gray);font-family:var(--fb);font-size:12px;outline:none;transition:border-color .2s;width:100%;}
+.socurl:focus{border-bottom-color:var(--gold);color:var(--white);}
+
+/* ABOUT IMG UPLOAD */
+.abimgup{border:2px dashed rgba(201,169,110,.15);padding:20px;text-align:center;cursor:pointer;transition:all var(--tr);position:relative;border-radius:2px;margin-top:12px;}
+.abimgup:hover{border-color:rgba(201,169,110,.4);}
+.abimgup input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.abimgprev{width:100%;height:150px;background:#1a1a1a;border-radius:2px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:28px;color:rgba(201,169,110,.2);}
+.abimgprev img{width:100%;height:100%;object-fit:cover;}
+
+/* IMAGE LIBRARY */
+.imglib{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:14px;}
+.imgslot{aspect-ratio:1;background:#111;border:1px dashed rgba(201,169,110,.12);position:relative;cursor:pointer;overflow:hidden;border-radius:2px;transition:border-color .2s;}
+.imgslot:hover{border-color:rgba(201,169,110,.35);}
+.imgslot img{width:100%;height:100%;object-fit:cover;}
+.imgslot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.imgslot-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(201,169,110,.2);font-size:9px;letter-spacing:.1em;gap:4px;}
+.imgrem{position:absolute;top:3px;right:3px;width:18px;height:18px;background:rgba(10,10,10,.85);border:none;color:var(--gold);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;border-radius:2px;}
+
+/* ===================== BRAND SLIDER ===================== */
+.brand-fade-wrap{overflow:hidden;}
+.brand-track{display:flex;gap:20px;width:max-content;animation:brandL 35s linear infinite;}
+.brand-track-rev{animation:brandR 38s linear infinite;}
+.brand-track:hover,.brand-track-rev:hover{animation-play-state:paused;}
+@keyframes brandL{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes brandR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+
+.brand-card{
+  flex-shrink:0;
+  width:200px;
+  background:#0e0e0e;
+  border:1px solid rgba(201,169,110,0.1);
+  padding:24px 20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  transition:all 0.35s ease;
+  position:relative;
+  overflow:hidden;
+}
+.brand-card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(201,169,110,0.06),transparent);
+  opacity:0;
+  transition:opacity 0.35s;
+}
+.brand-card:hover{border-color:rgba(201,169,110,0.4);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.4);}
+.brand-card:hover::before{opacity:1;}
+
+.brand-logo-box{
+  width:64px;
+  height:64px;
+  border:1px solid rgba(201,169,110,0.2);
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(201,169,110,0.04);
+  overflow:hidden;
+  transition:border-color 0.35s;
+}
+.brand-card:hover .brand-logo-box{border-color:rgba(201,169,110,0.5);}
+.brand-logo-box img{width:100%;height:100%;object-fit:contain;padding:8px;}
+.brand-initials{
+  font-family:var(--fd);
+  font-size:22px;
+  font-weight:300;
+  color:var(--gold);
+  letter-spacing:0.05em;
+}
+.brand-name{
+  font-size:13px;
+  font-weight:500;
+  color:var(--white);
+  text-align:center;
+  line-height:1.4;
+}
+.brand-type{
+  font-size:10px;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--gray);
+}
+
+.brand-fade{
+  position:absolute;
+  top:0;bottom:0;
+  width:120px;
+  z-index:2;
+  pointer-events:none;
+}
+.brand-fade-l{left:0;background:linear-gradient(to right,#060606,transparent);}
+.brand-fade-r{right:0;background:linear-gradient(to left,#060606,transparent);}
+
+/* ===================== MESSAGES ===================== */
+.msg-filter-btn{background:transparent;border:1px solid rgba(201,169,110,.15);color:var(--gray);padding:7px 16px;font-size:11px;letter-spacing:.08em;cursor:pointer;font-family:var(--fb);border-radius:2px;transition:all .2s;}
+.msg-filter-btn:hover{border-color:rgba(201,169,110,.4);color:var(--white);}
+.msg-filter-btn.on{background:rgba(201,169,110,.12);border-color:var(--gold);color:var(--gold);}
+
+.msg-card{background:#0f0f0f;border:1px solid rgba(201,169,110,.1);padding:0;border-radius:2px;cursor:pointer;transition:all .25s;overflow:hidden;}
+.msg-card:hover{border-color:rgba(201,169,110,.35);transform:translateY(-1px);}
+.msg-card.unread{border-left:3px solid var(--gold);}
+.msg-card-inner{padding:18px 22px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;}
+.msg-avatar{width:38px;height:38px;border-radius:50%;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.2);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:16px;color:var(--gold);flex-shrink:0;}
+.msg-header{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
+.msg-name{font-size:14px;font-weight:500;color:var(--white);}
+.msg-unread-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+.msg-meta{font-size:11px;color:var(--gray);margin-bottom:8px;display:flex;gap:12px;flex-wrap:wrap;}
+.msg-preview{font-size:12px;color:rgba(245,242,238,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:500px;}
+.msg-date{font-size:11px;color:rgba(136,136,136,.5);white-space:nowrap;text-align:right;}
+.msg-type-tag{display:inline-block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border:1px solid rgba(201,169,110,.2);color:var(--gold);border-radius:2px;}
+.msg-empty{padding:60px 20px;text-align:center;color:var(--gray);font-size:14px;}
+.msg-empty-icon{font-size:40px;margin-bottom:12px;opacity:.3;}
+
+/* detail meta items */
+.md-item{background:#111;padding:12px 16px;border-radius:2px;}
+.md-item-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:4px;}
+.md-item-val{font-size:13px;color:var(--white);}
+
+@media(max-width:900px){
+  #sitenav{padding:20px 24px;}
+  #sitenav.sc{padding:14px 24px;}
+  .nlinks{display:none;}.hbg{display:flex;}
+  section{padding:80px 24px;}#hero{padding:60px 24px;}
+  .ht{font-size:52px;}.hstats{display:none;}
+  #about{grid-template-columns:1fr;gap:40px;}.aim{height:360px;}
+  .pgrid{grid-template-columns:1fr 1fr;}
+  .pcard:nth-child(n){grid-column:auto;height:280px;}
+  .sgrid{grid-template-columns:1fr;}
+  .psteps{grid-template-columns:1fr 1fr;gap:40px;}.psteps::before{display:none;}
+  #contact{grid-template-columns:1fr;gap:60px;}
+  .fgrid{grid-template-columns:1fr 1fr;}
+  .ovstats{grid-template-columns:1fr 1fr;}
+  .prow{grid-template-columns:60px 1fr auto;}
+  .dsb{display:none;}.dmain{padding:20px;}
+  .lpage{padding:120px 24px 60px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader"><div class="ll">KEY PROJECT</div><div class="lbw"><div class="lb"></div></div></div>
+
+<!-- CURSOR -->
+<div class="cur" id="cur"></div>
+<div class="cur-f" id="curf"></div>
+<div class="notif" id="notif"></div>
+
+<!-- MOBILE MENU -->
+<div class="mmenu" id="mmenu">
+  <a href="#hero" onclick="closeM()">Home</a>
+  <a href="#about" onclick="closeM()">About</a>
+  <a href="#projects" onclick="closeM()">Projects</a>
+  <a href="#services" onclick="closeM()">Services</a>
+  <a href="#contact" onclick="closeM()">Contact</a>
+</div>
+
+<!-- NAV (shown on main site + legal pages) -->
+<nav id="sitenav">
+  <a href="#" class="nlogo" id="nlogo" onclick="goSite()">
+    <img class="nlogo-img" id="nlogoImg" src="" alt="">
+    <span id="nlogoTxt">KEY <b style="color:var(--gold);font-weight:500">PROJECT</b></span>
+  </a>
+  <ul class="nlinks">
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="hbg" id="hbg" onclick="toggleM()"><span></span><span></span><span></span></div>
+</nav>
+
+<!-- ===================== MAIN SITE ===================== -->
+<div id="site">
+
+<section id="hero">
+  <div class="hbg2"></div><div class="hline"></div>
+  <div class="hcon">
+    <p class="hey" id="s-ey">Architecture · Interior Design · Pune, India</p>
+    <h1 class="ht" id="s-ht">Spaces Built<br>for <em>Living</em></h1>
+    <p class="hs" id="s-hs">We craft architectural experiences that transcend the ordinary — where structure meets soul, and design meets purpose.</p>
+    <div class="hcta">
+      <a href="#projects" class="btn1">View Our Work</a>
+      <a href="#contact" class="btn2">Start a Project</a>
+    </div>
+  </div>
+  <div class="hstats">
+    <div><div class="snum" id="s-s1">150+</div><div class="slbl">Projects Completed</div></div>
+    <div><div class="snum" id="s-s2">12</div><div class="slbl">Years of Excellence</div></div>
+    <div><div class="snum" id="s-s3">28</div><div class="slbl">Awards Won</div></div>
+  </div>
+  <div class="scroll-i"><div class="sline"></div></div>
+</section>
+
+<section id="about">
+  <div class="aim rv">
+    <div class="agold"></div>
+    <div class="aim1" id="aim1">
+      <div class="pph" style="height:100%"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>About Image</div>
+    </div>
+    <div class="aim2" id="aim2">
+      <div class="pph" style="height:100%"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Detail</div>
+    </div>
+  </div>
+  <div class="acon">
+    <p class="eyebrow rv">About the Firm</p>
+    <h2 class="stitle rv" id="s-at">Crafting <em>Vision</em><br>Into Reality</h2>
+    <p class="rv" id="s-ap1">Founded in 2012, Key Project Architecture is a Pune-based practice dedicated to creating spaces that are as meaningful as they are beautiful.</p>
+    <p class="rv" id="s-ap2">From intimate residences to ambitious commercial developments, we approach each project with the same rigour: listening deeply, designing thoughtfully, and building with integrity.</p>
+    <div class="afeat rv">
+      <div class="afi"><div class="afn" id="s-f1">150+</div><div class="afl">Projects Delivered</div></div>
+      <div class="afi"><div class="afn" id="s-f2">12</div><div class="afl">Years Experience</div></div>
+      <div class="afi"><div class="afn" id="s-f3">28</div><div class="afl">Design Awards</div></div>
+      <div class="afi"><div class="afn" id="s-f4">100%</div><div class="afl">Client Satisfaction</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="ph">
+    <div><p class="eyebrow rv">Selected Work</p><h2 class="stitle rv">Our <em>Projects</em></h2></div>
+    <a href="#contact" class="btn2 rv">View All Work</a>
+  </div>
+  <div class="pgrid" id="pgrid"></div>
+</section>
+
+<section id="services">
+  <p class="eyebrow rv">What We Do</p><h2 class="stitle rv">Our <em>Services</em></h2>
+  <div class="sgrid">
+    <div class="si rv d1"><div class="sinum">01</div><div class="siname">Architectural Design</div><div class="sidesc">End-to-end services from concept to construction drawings, approvals, and site supervision.</div></div>
+    <div class="si rv d2"><div class="sinum">02</div><div class="siname">Interior Design</div><div class="sidesc">Thoughtful interiors that marry aesthetics with function — furniture, lighting, materials, and spatial planning.</div></div>
+    <div class="si rv d3"><div class="sinum">03</div><div class="siname">Urban Planning</div><div class="sidesc">Master planning for residential communities, mixed-use developments, and institutional campuses.</div></div>
+    <div class="si rv d1"><div class="sinum">04</div><div class="siname">Landscape Design</div><div class="sidesc">Outdoor environments that extend the architecture — courtyards, terraces, gardens, and public spaces.</div></div>
+    <div class="si rv d2"><div class="sinum">05</div><div class="siname">Project Management</div><div class="sidesc">Complete management from budget planning through contractor coordination to delivery.</div></div>
+    <div class="si rv d3"><div class="sinum">06</div><div class="siname">Vastu Consultation</div><div class="sidesc">Vastu Shastra principles woven seamlessly into modern design — creating harmonious spaces.</div></div>
+  </div>
+</section>
+
+<section id="process">
+  <p class="eyebrow rv">How We Work</p><h2 class="stitle rv">Our <em>Process</em></h2>
+  <div class="psteps">
+    <div class="pstep rv d1"><div class="stepn">01</div><div class="stept">Discovery</div><div class="stepd">We listen. Your brief, your lifestyle, your vision — absorbed before a single line is drawn.</div></div>
+    <div class="pstep rv d2"><div class="stepn">02</div><div class="stept">Concept</div><div class="stepd">Translating your story into spatial concepts — sketches, models, mood boards.</div></div>
+    <div class="pstep rv d3"><div class="stepn">03</div><div class="stept">Design</div><div class="stepd">Detailed drawings, approvals, material selection, and design development.</div></div>
+    <div class="pstep rv d4"><div class="stepn">04</div><div class="stept">Build</div><div class="stepd">On-site supervision, contractor coordination, and quality assurance.</div></div>
+  </div>
+</section>
+
+<section id="testimonials" style="overflow:hidden;">
+  <p class="eyebrow rv">What Clients Say</p><h2 class="stitle rv">Their <em>Words</em></h2>
+  <div class="ttrack">
+    <div class="tc"><div class="tq">"Key Project didn't just design our home — they designed our life."</div><div class="ta"><div class="tav">SR</div><div><div class="tn">Sneha & Rahul Joshi</div><div class="tr">Residential, Pune</div></div></div></div>
+    <div class="tc"><div class="tq">"Their attention to detail is extraordinary. The office they designed changed how our team works."</div><div class="ta"><div class="tav">AP</div><div><div class="tn">Ananya Patel</div><div class="tr">CEO, TechVenture India</div></div></div></div>
+    <div class="tc"><div class="tq">"From first meeting to final walkthrough — impeccable. Highly recommended."</div><div class="ta"><div class="tav">MK</div><div><div class="tn">Mohan Kulkarni</div><div class="tr">Developer, Pune</div></div></div></div>
+    <div class="tc"><div class="tq">"The result is a home that feels completely us — our story built in stone."</div><div class="ta"><div class="tav">DM</div><div><div class="tn">Deepika & Manish Shah</div><div class="tr">Residential, Mumbai</div></div></div></div>
+    <div class="tc"><div class="tq">"Key Project didn't just design our home — they designed our life."</div><div class="ta"><div class="tav">SR</div><div><div class="tn">Sneha & Rahul Joshi</div><div class="tr">Residential, Pune</div></div></div></div>
+    <div class="tc"><div class="tq">"Their attention to detail is extraordinary. The office they designed changed how our team works."</div><div class="ta"><div class="tav">AP</div><div><div class="tn">Ananya Patel</div><div class="tr">CEO, TechVenture India</div></div></div></div>
+    <div class="tc"><div class="tq">"From first meeting to final walkthrough — impeccable. Highly recommended."</div><div class="ta"><div class="tav">MK</div><div><div class="tn">Mohan Kulkarni</div><div class="tr">Developer, Pune</div></div></div></div>
+    <div class="tc"><div class="tq">"The result is a home that feels completely us — our story built in stone."</div><div class="ta"><div class="tav">DM</div><div><div class="tn">Deepika & Manish Shah</div><div class="tr">Residential, Mumbai</div></div></div></div>
+  </div>
+</section>
+
+<!-- ===================== CLIENTS / BRANDS ===================== -->
+<section id="clients" style="padding:80px 0;background:#060606;overflow:hidden;border-top:1px solid rgba(201,169,110,0.07);border-bottom:1px solid rgba(201,169,110,0.07);">
+  <div style="padding:0 60px;margin-bottom:48px;display:flex;align-items:flex-end;justify-content:space-between;">
+    <div>
+      <p class="eyebrow rv">Trusted By</p>
+      <h2 class="stitle rv">Companies We've <em>Built For</em></h2>
+    </div>
+    <p class="rv" style="font-size:13px;color:var(--gray);max-width:320px;line-height:1.8;text-align:right;">From boutique residences to Fortune-500 offices — these are the brands that trusted us with their spaces.</p>
+  </div>
+
+  <!-- TRACK 1 — slides left -->
+  <div class="brand-fade-wrap" style="position:relative;margin-bottom:20px;">
+    <div class="brand-fade brand-fade-l"></div>
+    <div class="brand-fade brand-fade-r"></div>
+    <div class="brand-track" id="brandTrack1"></div>
+  </div>
+
+  <!-- TRACK 2 — slides right -->
+  <div class="brand-fade-wrap" style="position:relative;">
+    <div class="brand-fade brand-fade-l"></div>
+    <div class="brand-fade brand-fade-r"></div>
+    <div class="brand-track brand-track-rev" id="brandTrack2"></div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="ci">
+    <p class="eyebrow rv">Get In Touch</p>
+    <h2 class="stitle rv">Let's Build<br><em>Something</em><br>Together</h2>
+    <p class="rv" id="s-cd">Every great project starts with a conversation.</p>
+    <div class="cdet rv">
+      <div class="cdi"><div class="cico">📍</div><div><div class="cdl">Address</div><div class="cdv" id="s-adr">123 Design District, Koregaon Park, Pune 411001</div></div></div>
+      <div class="cdi"><div class="cico">📞</div><div><div class="cdl">Phone</div><div class="cdv" id="s-ph">+91 98765 43210</div></div></div>
+      <div class="cdi"><div class="cico">✉️</div><div><div class="cdl">Email</div><div class="cdv" id="s-em">hello@keyprojectarch.in</div></div></div>
+    </div>
+    <div class="slinks rv">
+      <a href="https://instagram.com" target="_blank" class="sl" id="sl-ig" title="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+      <a href="https://linkedin.com" target="_blank" class="sl" id="sl-li" title="LinkedIn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 10v7M7 7v.01M12 10v7M12 13a3 3 0 0 1 6 0v4"/></svg></a>
+      <a href="https://facebook.com" target="_blank" class="sl" id="sl-fb" title="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+      <a href="https://pinterest.com" target="_blank" class="sl" id="sl-pi" title="Pinterest"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12a4 4 0 0 1 7.6-1.7c.3.8.4 1.7.2 2.5-.3 1.4-1.3 2.5-2.6 2.5-.6 0-1.2-.5-1.2-1.1l.5-2.1"/></svg></a>
+      <a href="https://wa.me/919876543210" target="_blank" class="sl" id="sl-wa" title="WhatsApp"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
+      <a href="https://houzz.com" target="_blank" class="sl" id="sl-hz" title="Houzz"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9.5L12 3l9 6.5V21H3V9.5z"/><path d="M9 21v-9h6v9"/></svg></a>
+    </div>
+  </div>
+  <div class="cf rv">
+    <div class="fg"><label>Your Name</label><input type="text" id="fn" placeholder="Rahul Sharma"></div>
+    <div class="fg"><label>Email</label><input type="email" id="fe" placeholder="rahul@email.com"></div>
+    <div class="fg"><label>Phone</label><input type="tel" placeholder="+91 98765 43210"></div>
+    <div class="fg"><label>Project Type</label><select><option value="">Select type</option><option>Residential Home</option><option>Commercial Office</option><option>Interior Design</option><option>Renovation</option><option>Consultation</option></select></div>
+    <div class="fg"><label>Message</label><textarea placeholder="Describe your project..."></textarea></div>
+    <button class="fsub" onclick="submitForm()">Send Message →</button>
+  </div>
+</section>
+
+<footer>
+  <div class="fgrid">
+    <div class="fb">
+      <div class="nlogo" style="cursor:default">
+        <img class="nlogo-img" id="fLogoImg" src="" alt="" style="display:none">
+        <span id="fLogoTxt">KEY <b style="color:var(--gold);font-weight:500">PROJECT</b></span>
+      </div>
+      <p id="s-fd">Architecture & Interior Design firm based in Pune, Maharashtra. Crafting spaces that outlast trends since 2012.</p>
+    </div>
+    <div class="fc"><h4>Navigation</h4><ul><li><a href="#about">About</a></li><li><a href="#projects">Projects</a></li><li><a href="#services">Services</a></li><li><a href="#process">Process</a></li><li><a href="#clients">Clients</a></li><li><a href="#contact">Contact</a></li></ul></div>
+    <div class="fc"><h4>Services</h4><ul><li><a href="#services">Architecture</a></li><li><a href="#services">Interior Design</a></li><li><a href="#services">Urban Planning</a></li><li><a href="#services">Landscape</a></li><li><a href="#services">Vastu</a></li></ul></div>
+    <div class="fc"><h4>Legal</h4><ul><li><a href="#" onclick="goPrivacy()">Privacy Policy</a></li><li><a href="#" onclick="goTerms()">Terms of Service</a></li></ul></div>
+  </div>
+  <div class="fbot">
+    <p id="s-cr">© 2024 Key Project Architecture. All rights reserved.</p>
+    <div class="fleg"><a href="#" onclick="goPrivacy()">Privacy Policy</a><a href="#" onclick="goTerms()">Terms of Service</a></div>
+  </div>
+</footer>
+
+</div><!-- /site -->
+
+<!-- ===================== LEGAL PAGES ===================== -->
+<div id="privacy" style="display:none">
+  <nav style="position:fixed;top:0;left:0;right:0;z-index:1000;padding:20px 60px;background:rgba(10,10,10,.98);border-bottom:1px solid rgba(201,169,110,.1);display:flex;align-items:center;justify-content:space-between;">
+    <a href="#" class="nlogo" onclick="goSite()">KEY <span>PROJECT</span></a>
+    <a href="#" onclick="goSite()" style="font-size:12px;color:var(--gray);text-decoration:none;cursor:none;">← Back</a>
+  </nav>
+  <div class="lpage">
+    <h1>Privacy <em style="font-style:italic;color:var(--gold)">Policy</em></h1>
+    <p class="ldate">Last updated: January 1, 2024</p>
+    <p>At Key Project Architecture, we are committed to protecting your personal information. This Policy describes how we collect, use, and share information when you visit our website or engage our services.</p>
+    <h2>1. Information We Collect</h2><p>We collect information you provide — name, email, phone, project details — and technical data like IP address and browser type collected automatically.</p>
+    <h2>2. How We Use It</h2><ul><li>Respond to enquiries and provide services</li><li>Send relevant project communications</li><li>Improve our website and services</li><li>Comply with legal obligations</li></ul>
+    <h2>3. Sharing</h2><p>We do not sell your data. We may share with trusted service providers under confidentiality agreements, or as required by law.</p>
+    <h2>4. Cookies</h2><p>We use cookies to enhance your experience. You may disable them via browser settings.</p>
+    <h2>5. Social Media</h2><p>Links to Instagram, LinkedIn, Facebook, Pinterest, Houzz, and WhatsApp are provided. Their respective privacy policies apply.</p>
+    <h2>6. Data Security</h2><p>We implement appropriate technical measures to protect your information.</p>
+    <h2>7. Your Rights</h2><p>You may request access, correction, or deletion of your data. Contact: <span style="color:var(--gold)">hello@keyprojectarch.in</span></p>
+    <h2>8. Contact</h2><p>Key Project Architecture · 123 Design District, Koregaon Park, Pune 411001 · +91 98765 43210</p>
+  </div>
+  <footer style="padding:24px 60px;border-top:1px solid rgba(201,169,110,.1);display:flex;justify-content:space-between;"><p style="font-size:12px;color:var(--gray)">© 2024 Key Project Architecture</p><div style="display:flex;gap:20px;"><a href="#" onclick="goPrivacy()" style="font-size:12px;color:var(--gold);text-decoration:none;cursor:none;">Privacy Policy</a><a href="#" onclick="goTerms()" style="font-size:12px;color:var(--gray);text-decoration:none;cursor:none;">Terms</a></div></footer>
+</div>
+
+<div id="terms" style="display:none">
+  <nav style="position:fixed;top:0;left:0;right:0;z-index:1000;padding:20px 60px;background:rgba(10,10,10,.98);border-bottom:1px solid rgba(201,169,110,.1);display:flex;align-items:center;justify-content:space-between;">
+    <a href="#" class="nlogo" onclick="goSite()">KEY <span>PROJECT</span></a>
+    <a href="#" onclick="goSite()" style="font-size:12px;color:var(--gray);text-decoration:none;cursor:none;">← Back</a>
+  </nav>
+  <div class="lpage">
+    <h1>Terms of <em style="font-style:italic;color:var(--gold)">Service</em></h1>
+    <p class="ldate">Last updated: January 1, 2024</p>
+    <p>By accessing our website or engaging our services, you agree to these Terms.</p>
+    <h2>1. Services</h2><p>Key Project Architecture provides architectural, interior, landscape, and project management services. Scope is defined in written project agreements.</p>
+    <h2>2. Website Use</h2><p>You may use our website for lawful purposes only. Unauthorised access or copying of content is prohibited.</p>
+    <h2>3. Intellectual Property</h2><p>All designs and creative works remain our property until full payment is received. Website content is owned by Key Project Architecture.</p>
+    <h2>4. Client Responsibilities</h2><ul><li>Provide accurate project information</li><li>Make timely payments per the agreed schedule</li><li>Provide site access and documents as needed</li></ul>
+    <h2>5. Payment Terms</h2><p>Fees are structured in project milestones. Late payments may attract 1.5% monthly interest.</p>
+    <h2>6. Limitation of Liability</h2><p>Liability shall not exceed fees paid for the relevant project phase.</p>
+    <h2>7. Governing Law</h2><p>These Terms are governed by the laws of Maharashtra, India. Courts of Pune have exclusive jurisdiction.</p>
+    <h2>8. Contact</h2><p>hello@keyprojectarch.in · +91 98765 43210</p>
+  </div>
+  <footer style="padding:24px 60px;border-top:1px solid rgba(201,169,110,.1);display:flex;justify-content:space-between;"><p style="font-size:12px;color:var(--gray)">© 2026 Key Project Architecture</p><div style="display:flex;gap:20px;"><a href="#" onclick="goPrivacy()" style="font-size:12px;color:var(--gray);text-decoration:none;cursor:none;">Privacy</a><a href="#" onclick="goTerms()" style="font-size:12px;color:var(--gold);text-decoration:none;cursor:none;">Terms of Service</a></div></footer>
+</div>
+
+<!-- ===================== ADMIN MOUNT POINT (empty until login) ===================== -->
+<div id="adminMount"></div>
+
+<script>
+'use strict';
+// ============================================================
+//  STATE
+// ============================================================
+let ADM_PASS = 'admin123';
+let isLoggedIn = false;
+let logoData = null;
+let projects = [
+  {cat:'Residential', name:'The Meridian Villa', location:'Pune, Maharashtra', img:null},
+  {cat:'Commercial',  name:'Skyline Tower',      location:'Mumbai, Maharashtra',img:null},
+  {cat:'Interior',    name:'Studio Zen',          location:'Pune',               img:null},
+  {cat:'Institutional',name:'The Learning Hub',  location:'Nashik',             img:null},
+  {cat:'Renovation',  name:'Heritage Bungalow',  location:'Pune',               img:null},
+];
+
+// ============================================================
+//  CURSOR
+// ============================================================
+const cur=document.getElementById('cur'), curf=document.getElementById('curf');
+let mx=0,my=0,fx=0,fy=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function ac(){fx+=(mx-fx)*.12;fy+=(my-fy)*.12;curf.style.left=fx+'px';curf.style.top=fy+'px';requestAnimationFrame(ac);})();
+document.addEventListener('mouseover',e=>{
+  const t=e.target,is=t.matches('a,button,input,textarea,select,.pcard,.si,.sl,.lup,.abimgup,.imgslot,.pthumb,.csw,.addpbtn,.dsb-btn,.dnb');
+  cur.classList.toggle('ex',is); curf.classList.toggle('ex',is);
+});
+
+// ============================================================
+//  LOADER
+// ============================================================
+window.addEventListener('load',()=>{setTimeout(()=>{const l=document.getElementById('loader');l.classList.add('done');setTimeout(()=>l.remove(),800);},2200);});
+
+// ============================================================
+//  NAV SCROLL
+// ============================================================
+window.addEventListener('scroll',()=>document.getElementById('sitenav').classList.toggle('sc',scrollY>60));
+
+// ============================================================
+//  REVEAL ON SCROLL
+// ============================================================
+const rvObs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vi');rvObs.unobserve(e.target);}}),{threshold:.1});
+document.querySelectorAll('.rv').forEach(el=>rvObs.observe(el));
+
+// ============================================================
+//  MOBILE MENU
+// ============================================================
+let mOpen=false;
+function toggleM(){mOpen=!mOpen;document.getElementById('mmenu').classList.toggle('open',mOpen);const s=document.querySelectorAll('#hbg span');if(mOpen){s[0].style.transform='rotate(45deg) translate(4px,4px)';s[1].style.opacity='0';s[2].style.transform='rotate(-45deg) translate(4px,-4px)';}else s.forEach(x=>{x.style.transform='';x.style.opacity='';})}
+function closeM(){if(mOpen)toggleM();}
+
+// ============================================================
+//  SECTION VISIBILITY (no display:none on admin — admin is not in DOM until login)
+// ============================================================
+function showOnly(...els){
+  ['site','privacy','terms'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  document.getElementById('sitenav').style.display='flex';
+  // hide sitenav on admin
+  if(els.includes('admin')){document.getElementById('sitenav').style.display='none';}
+  els.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='block';});
+  window.scrollTo(0,0);
+}
+
+function goSite(){showOnly('site');}
+function goPrivacy(){showOnly('privacy');}
+function goTerms(){showOnly('terms');}
+
+// ============================================================
+//  ADMIN — mount/destroy HTML only after auth
+// ============================================================
+function mountAdmin(){
+  const m=document.getElementById('adminMount');
+  m.innerHTML=buildAdminHTML();
+  bindAdminEvents();
+  renderProjects();
+  renderAdminProjects();
+  renderAdminClients();
+  updateMsgBadge();
+  document.getElementById('sitenav').style.display='none';
+  showOnly(); // hide all public sections
+}
+function destroyAdmin(){
+  isLoggedIn=false;
+  document.getElementById('adminMount').innerHTML='';
+  const nav=document.getElementById('sitenav');
+  if(nav) nav.style.display='flex';
+  ['privacy','terms'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  const site=document.getElementById('site');
+  if(site) site.style.display='block';
+  window.scrollTo(0,0);
+}
+
+// ============================================================
+//  ADMIN LOGIN PAGE — rendered when user goes to #admin
+// ============================================================
+function mountLogin(){
+  const m=document.getElementById('adminMount');
+  m.innerHTML=`
+  <div class="al-wrap">
+    <div class="al-card">
+      <div class="al-logo">
+        ${logoData?`<img src="${logoData}" style="height:30px;width:30px;object-fit:contain;">`:''}
+        <span id="alLogoTxt">KEY <span>PROJECT</span></span>
+      </div>
+      <p class="al-sub">Admin Portal — Restricted Access</p>
+      <div class="al-field"><label>Username</label><input type="text" id="aUser" placeholder="Username" autocomplete="username"></div>
+      <div class="al-field"><label>Password</label><input type="password" id="aPass" placeholder="Password" autocomplete="current-password"></div>
+      <button class="al-btn" onclick="doLogin()">Sign In →</button>
+      <p class="al-err" id="aErr">Invalid credentials. Please try again.</p>
+      <span class="al-back" onclick="destroyAdmin();goSite()">← Return to Website</span>
+      <div class="al-hint">Default login: <strong>admin</strong> / <strong>admin123</strong></div>
+    </div>
+  </div>`;
+  document.getElementById('sitenav').style.display='none';
+  showOnly();
+  // enter key
+  setTimeout(()=>{
+    const p=document.getElementById('aPass');
+    if(p) p.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  },100);
+}
+
+function doLogin(){
+  const u=(document.getElementById('aUser')||{}).value||'';
+  const p=(document.getElementById('aPass')||{}).value||'';
+  if(u.trim()==='admin' && p===ADM_PASS){
+    isLoggedIn=true;
+    mountAdmin();
+  } else {
+    const err=document.getElementById('aErr');
+    if(err) err.style.display='block';
+  }
+}
+function doLogout(){destroyAdmin();}
+
+// ============================================================
+//  SECRET ADMIN ROUTE
+//  - URL hash #admin
+//  - Konami-style: click footer copyright 7 times
+// ============================================================
+function goAdmin(){
+  if(isLoggedIn){mountAdmin();}
+  else{mountLogin();}
+}
+// Hash check (only on load, not reactive, so doesn't leak on normal navigation)
+if(window.location.hash==='#admin'){
+  window.addEventListener('load',()=>setTimeout(goAdmin,2400));
+}
+// Footer tap secret
+let tapCount=0, tapTimer=null;
+document.addEventListener('click',e=>{
+  if(e.target && e.target.id==='s-cr'){
+    tapCount++;
+    clearTimeout(tapTimer);
+    tapTimer=setTimeout(()=>{tapCount=0;},2000);
+    if(tapCount>=7){tapCount=0;goAdmin();}
+  }
+});
+
+// ============================================================
+//  ADMIN HTML BUILDER
+// ============================================================
+function buildAdminHTML(){
+  return `
+  <div class="adash" id="adash">
+    <div class="dh">
+      <div class="dh-logo">
+        ${logoData?`<img src="${logoData}" style="height:26px;width:26px;object-fit:contain;">`:''}
+        <span>KEY <span>PROJECT</span></span>
+      </div>
+      <div class="dnav">
+        <button class="dnb on" onclick="showP('overview',this)">Overview</button>
+        <button class="dnb" onclick="showP('messages',this)">Messages <span id="msg-badge" style="display:none;background:#e74c3c;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-family:var(--fb)"></span></button>
+        <button class="dnb" onclick="showP('branding',this)">Branding</button>
+        <button class="dnb" onclick="showP('content',this)">Content</button>
+        <button class="dnb" onclick="showP('projects',this)">Projects</button>
+        <button class="dnb" onclick="showP('clients',this)">Clients</button>
+        <button class="dnb" onclick="showP('media',this)">Media</button>
+        <button class="dnb" onclick="showP('social',this)">Social Links</button>
+        <button class="dnb" onclick="showP('settings',this)">Settings</button>
+      </div>
+      <div class="dh-act">
+        <button class="dprev" onclick="destroyAdmin();goSite()">Preview Site ↗</button>
+        <button class="dlout" onclick="doLogout()">Sign Out</button>
+      </div>
+    </div>
+    <div class="dbody">
+      <div class="dsb">
+        <div class="dsb-lbl">Manage</div>
+        <button class="dsb-btn on" onclick="showP('overview')"><span class="dsb-ico">⊞</span>Overview</button>
+        <button class="dsb-btn" onclick="showP('messages');markAllRead()"><span class="dsb-ico">✉</span>Messages <span id="msg-badge-sb" style="display:none;background:#e74c3c;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:auto;font-family:var(--fb)"></span></button>
+        <button class="dsb-btn" onclick="showP('branding')"><span class="dsb-ico">◈</span>Branding & Logo</button>
+        <button class="dsb-btn" onclick="showP('content')"><span class="dsb-ico">✏</span>Site Content</button>
+        <button class="dsb-btn" onclick="showP('projects')"><span class="dsb-ico">◻</span>Projects</button>
+        <button class="dsb-btn" onclick="showP('clients')"><span class="dsb-ico">★</span>Client Brands</button>
+        <button class="dsb-btn" onclick="showP('media')"><span class="dsb-ico">⬡</span>Media & Images</button>
+        <button class="dsb-btn" onclick="showP('social')"><span class="dsb-ico">◉</span>Social Links</button>
+        <div class="dsb-lbl" style="margin-top:12px">System</div>
+        <button class="dsb-btn" onclick="showP('settings')"><span class="dsb-ico">⚙</span>Settings</button>
+      </div>
+      <div class="dmain">
+
+        <!-- OVERVIEW -->
+        <div class="dpanel on" id="dp-overview">
+          <h2 class="ptitle">Dashboard <em>Overview</em></h2>
+          <p class="psub">Welcome back. Here's a snapshot of your website.</p>
+          <div class="ovstats">
+            <div class="ovs" style="cursor:pointer" onclick="showP('messages');markAllRead()"><div class="ovs-n" id="ov-mc" style="color:#e74c3c">0</div><div class="ovs-l">New Messages</div></div>
+            <div class="ovs"><div class="ovs-n" id="ov-pc">${projects.length}</div><div class="ovs-l">Projects</div></div>
+            <div class="ovs"><div class="ovs-n" id="ov-cc">${clients.length}</div><div class="ovs-l">Client Brands</div></div>
+            <div class="ovs"><div class="ovs-n" id="ov-tm">0</div><div class="ovs-l">Total Messages</div></div>
+          </div>
+          <div class="egrid">
+            <div class="ecard">
+              <div class="ectitle">Quick Actions</div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <button class="sbtn" onclick="showP('messages');markAllRead()">📬 View Client Messages</button>
+                <button class="sbtn gh" onclick="showP('branding')">Upload Logo / Change Name</button>
+                <button class="sbtn gh" onclick="showP('content')">Edit Text Content</button>
+                <button class="sbtn gh" onclick="showP('projects')">Manage Projects</button>
+                <button class="sbtn gh" onclick="showP('clients')">Manage Client Brands</button>
+                <button class="sbtn gh" onclick="showP('social')">Update Social Links</button>
+              </div>
+            </div>
+            <div class="ecard">
+              <div class="ectitle">Firm Info</div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;font-size:13px;border-bottom:1px solid rgba(201,169,110,.08);padding-bottom:10px"><span style="color:var(--gray)">Firm Name</span><span>Key Project Architecture</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;border-bottom:1px solid rgba(201,169,110,.08);padding-bottom:10px"><span style="color:var(--gray)">Location</span><span>Pune, MH</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;border-bottom:1px solid rgba(201,169,110,.08);padding-bottom:10px"><span style="color:var(--gray)">Founded</span><span>2012</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--gray)">Status</span><span style="color:#2ecc71">● Live</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MESSAGES -->
+        <div class="dpanel" id="dp-messages">
+          <h2 class="ptitle">Client <em>Messages</em></h2>
+          <p class="psub">All enquiries submitted through the contact form appear here.</p>
+
+          <!-- filters + actions bar -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+            <div style="display:flex;gap:8px">
+              <button class="msg-filter-btn on" onclick="filterMsgs('all',this)">All</button>
+              <button class="msg-filter-btn" onclick="filterMsgs('unread',this)">Unread</button>
+              <button class="msg-filter-btn" onclick="filterMsgs('read',this)">Read</button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="msg-search" placeholder="Search by name or email…" style="background:rgba(255,255,255,.03);border:1px solid rgba(201,169,110,.12);padding:8px 12px;color:var(--white);font-family:var(--fb);font-size:12px;outline:none;width:220px;" oninput="renderMsgList()">
+              <button class="sbtn gh" onclick="if(confirm('Delete all messages?')){messages=[];renderMsgList();updateMsgBadge();}">Clear All</button>
+            </div>
+          </div>
+
+          <!-- message list -->
+          <div id="msgList" style="display:flex;flex-direction:column;gap:10px"></div>
+
+          <!-- message detail modal -->
+          <div id="msgModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;padding:20px">
+            <div style="background:#0f0f0f;border:1px solid rgba(201,169,110,.2);max-width:600px;width:100%;max-height:90vh;overflow-y:auto;position:relative">
+              <div style="padding:28px 32px 0">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+                  <h3 style="font-family:var(--fd);font-size:24px;font-weight:300" id="md-name"></h3>
+                  <button onclick="closeMsgModal()" style="background:transparent;border:none;color:var(--gray);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px" id="md-meta"></div>
+                <div style="border-top:1px solid rgba(201,169,110,.1);padding-top:20px;margin-bottom:28px">
+                  <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:10px">Message</div>
+                  <p id="md-msg" style="font-size:14px;color:rgba(245,242,238,.8);line-height:1.9"></p>
+                </div>
+              </div>
+              <div style="padding:16px 32px;border-top:1px solid rgba(201,169,110,.1);display:flex;gap:10px">
+                <a id="md-reply" href="#" style="display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--black);padding:10px 22px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;font-weight:500;transition:all .3s">Reply via Email →</a>
+                <button id="md-del" onclick="" style="background:transparent;border:1px solid rgba(231,76,60,.25);color:rgba(231,76,60,.7);padding:10px 18px;font-size:12px;cursor:pointer;font-family:var(--fb);transition:all .2s">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BRANDING -->
+        <div class="dpanel" id="dp-branding">
+          <h2 class="ptitle">Branding <em>& Logo</em></h2>
+          <p class="psub">Upload your logo and update your firm name across the entire site.</p>
+          <div class="egrid">
+            <div class="ecard">
+              <div class="ectitle">Logo Upload</div>
+              <div class="lup">
+                <input type="file" accept="image/*" onchange="uploadLogo(this)">
+                <div class="lprev" id="lprev">${logoData?`<img src="${logoData}">`:'<span style="font-size:28px;opacity:.2">⬡</span>'}</div>
+                <div class="luptxt"><strong>Click to upload logo</strong><br>PNG, SVG, JPG — transparent background recommended</div>
+              </div>
+              <button class="sbtn gh" style="margin-top:12px" onclick="removeLogo()">Remove Logo</button>
+            </div>
+            <div class="ecard">
+              <div class="ectitle">Firm Name</div>
+              <div class="ef"><label>Full Firm Name</label><input id="b-name" value="Key Project Architecture"></div>
+              <div class="ef"><label>Navigation Name (short)</label><input id="b-short" value="KEY PROJECT"></div>
+              <div class="ef"><label>Accent Word (shown in gold)</label><input id="b-accent" value="PROJECT"></div>
+              <div class="ef"><label>Footer Description</label><textarea id="b-fdesc">Architecture & Interior Design firm based in Pune, Maharashtra. Crafting spaces that outlast trends since 2012.</textarea></div>
+              <button class="sbtn" onclick="saveBranding()">Apply Across Site</button>
+              <p class="ssucc" id="ss-brand">✓ Branding updated!</p>
+            </div>
+            <div class="ecard">
+              <div class="ectitle">Accent Colour</div>
+              <p style="font-size:12px;color:var(--gray);margin-bottom:12px">Choose your brand colour.</p>
+              <div class="cswatches">
+                <div class="csw on" style="background:#c9a96e" onclick="setColor('#c9a96e',this)" title="Gold"></div>
+                <div class="csw" style="background:#8b7355" onclick="setColor('#8b7355',this)" title="Bronze"></div>
+                <div class="csw" style="background:#a8c5b5" onclick="setColor('#a8c5b5',this)" title="Sage"></div>
+                <div class="csw" style="background:#c5a8a8" onclick="setColor('#c5a8a8',this)" title="Blush"></div>
+                <div class="csw" style="background:#7a9ab5" onclick="setColor('#7a9ab5',this)" title="Steel Blue"></div>
+                <div class="csw" style="background:#b5b57a" onclick="setColor('#b5b57a',this)" title="Olive"></div>
+              </div>
+              <div class="ef" style="margin-top:16px"><label>Custom Hex</label><input id="cc" placeholder="#c9a96e" oninput="if(this.value.length===7)setColor(this.value,null)"></div>
+            </div>
+            <div class="ecard">
+              <div class="ectitle">Page Meta</div>
+              <div class="ef"><label>Browser Tab Title</label><input id="b-title" value="Key Project Architecture"></div>
+              <div class="ef"><label>Copyright Line</label><input id="b-copy" value="© 2024 Key Project Architecture. All rights reserved."></div>
+              <button class="sbtn" onclick="saveMeta()">Save</button>
+              <p class="ssucc" id="ss-meta">✓ Saved!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="dpanel" id="dp-content">
+          <h2 class="ptitle">Site <em>Content</em></h2>
+          <p class="psub">Edit all text across the website. Changes apply live.</p>
+          <div class="egrid">
+            <div class="ecard">
+              <div class="ectitle">Hero Section</div>
+              <div class="ef"><label>Eyebrow</label><input id="c-ey" value="Architecture · Interior Design · Pune, India"></div>
+              <div class="ef"><label>Headline</label><textarea id="c-ht" style="min-height:56px">Spaces Built for Living</textarea></div>
+              <div class="ef"><label>Subtitle</label><textarea id="c-hs">We craft architectural experiences that transcend the ordinary — where structure meets soul, and design meets purpose.</textarea></div>
+              <button class="sbtn" onclick="saveC('hero')">Save Hero</button>
+              <p class="ssucc" id="ss-hero">✓ Updated!</p>
+            </div>
+            <div class="ecard">
+              <div class="ectitle">Stats</div>
+              <div class="er">
+                <div class="ef"><label>Projects Stat</label><input id="c-s1" value="150+"></div>
+                <div class="ef"><label>Years Stat</label><input id="c-s2" value="12"></div>
+                <div class="ef"><label>Awards Stat</label><input id="c-s3" value="28"></div>
+                <div class="ef"><label>Satisfaction</label><input id="c-s4" value="100%"></div>
+              </div>
+              <button class="sbtn" onclick="saveC('stats')">Save Stats</button>
+              <p class="ssucc" id="ss-stats">✓ Updated!</p>
+            </div>
+            <div class="ecard">
+              <div class="ectitle">About Section</div>
+              <div class="ef"><label>Title</label><input id="c-at" value="Crafting Vision Into Reality"></div>
+              <div class="ef"><label>Paragraph 1</label><textarea id="c-ap1">Founded in 2012, Key Project Architecture is a Pune-based practice dedicated to creating spaces that are as meaningful as they are beautiful.</textarea></div>
+              <div class="ef"><label>Paragraph 2</label><textarea id="c-ap2">From intimate residences to ambitious commercial developments, we approach each project with the same rigour.</textarea></div>
+              <button class="sbtn" onclick="saveC('about')">Save About</button>
+              <p class="ssucc" id="ss-about">✓ Updated!</p>
+            </div>
+            <div class="ecard">
+              <div class="ectitle">Contact Details</div>
+              <div class="ef"><label>Address</label><input id="c-adr" value="123 Design District, Koregaon Park, Pune 411001"></div>
+              <div class="ef"><label>Phone</label><input id="c-ph" value="+91 98765 43210"></div>
+              <div class="ef"><label>Email</label><input id="c-em" value="hello@keyprojectarch.in"></div>
+              <div class="ef"><label>Section Description</label><textarea id="c-cd">Every great project starts with a conversation.</textarea></div>
+              <button class="sbtn" onclick="saveC('contact')">Save Contact</button>
+              <p class="ssucc" id="ss-contact">✓ Updated!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROJECTS -->
+        <div class="dpanel" id="dp-projects">
+          <h2 class="ptitle">Manage <em>Projects</em></h2>
+          <p class="psub">Add, edit, or remove projects. Click a thumbnail to upload an image.</p>
+          <div class="plist" id="adminPList"></div>
+          <button class="addpbtn" onclick="addProject()">+ Add New Project</button>
+          <div style="margin-top:20px"><button class="sbtn" onclick="renderProjects();renderAdminProjects();notify('Projects updated on site!')">Apply to Site</button></div>
+        </div>
+
+        <!-- MEDIA -->
+        <div class="dpanel" id="dp-media">
+          <h2 class="ptitle">Media <em>& Images</em></h2>
+          <p class="psub">Upload images for the About section and general library.</p>
+          <div class="egrid">
+            <div class="ecard">
+              <div class="ectitle">About — Main Image</div>
+              <div class="abimgup">
+                <input type="file" accept="image/*" onchange="setAboutImg(this,1)">
+                <div id="abp1" class="abimgprev">🖼</div>
+                <div class="luptxt"><strong>Click to upload</strong> main about image</div>
+              </div>
+            </div>
+            <div class="ecard">
+              <div class="ectitle">About — Accent Image</div>
+              <div class="abimgup">
+                <input type="file" accept="image/*" onchange="setAboutImg(this,2)">
+                <div id="abp2" class="abimgprev">🖼</div>
+                <div class="luptxt"><strong>Click to upload</strong> accent image</div>
+              </div>
+            </div>
+            <div class="ecard" style="grid-column:1/-1">
+              <div class="ectitle">Image Library</div>
+              <div class="abimgup" style="padding:16px">
+                <input type="file" accept="image/*" multiple onchange="addLib(this)">
+                <div class="luptxt"><strong>Click to upload</strong> multiple images</div>
+              </div>
+              <div class="imglib" id="imgLib"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SOCIAL -->
+        <div class="dpanel" id="dp-social">
+          <h2 class="ptitle">Social <em>Links</em></h2>
+          <p class="psub">Update your social media URLs. Applied to contact section and footer.</p>
+          <div class="egrid">
+            <div class="ecard" style="grid-column:1/-1">
+              <div class="ectitle">Platform URLs</div>
+              <div class="soclist">
+                <div class="socrow"><div class="socico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="var(--gold)"/></svg></div><div class="socname">Instagram</div><input class="socurl" id="soc-ig" value="https://instagram.com/keyprojectarch"></div>
+                <div class="socrow"><div class="socico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 10v7M7 7v.01M12 10v7M12 13a3 3 0 0 1 6 0v4"/></svg></div><div class="socname">LinkedIn</div><input class="socurl" id="soc-li" value="https://linkedin.com/company/keyprojectarch"></div>
+                <div class="socrow"><div class="socico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></div><div class="socname">Facebook</div><input class="socurl" id="soc-fb" value="https://facebook.com/keyprojectarch"></div>
+                <div class="socrow"><div class="socico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12a4 4 0 0 1 7.6-1.7c.3.8.4 1.7.2 2.5-.3 1.4-1.3 2.5-2.6 2.5-.6 0-1.2-.5-1.2-1.1l.5-2.1"/></svg></div><div class="socname">Pinterest</div><input class="socurl" id="soc-pi" value="https://pinterest.com/keyprojectarch"></div>
+                <div class="socrow"><div class="socico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7A8.38 8.38 0 0 1 4.7 12.2L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6A8.38 8.38 0 0 1 12.5 3h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div><div class="socname">WhatsApp</div><input class="socurl" id="soc-wa" value="+91 98765 43210"></div>
+                <div class="socrow"><div class="socico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M3 9.5L12 3l9 6.5V21H3V9.5z"/><path d="M9 21v-9h6v9"/></svg></div><div class="socname">Houzz</div><input class="socurl" id="soc-hz" value="https://houzz.com/pro/keyprojectarch"></div>
+                <div class="socrow"><div class="socico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg></div><div class="socname">YouTube</div><input class="socurl" id="soc-yt" value=""></div>
+              </div>
+              <div style="margin-top:16px"><button class="sbtn" onclick="saveSocials()">Update Social Links</button><p class="ssucc" id="ss-soc">✓ Updated!</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTS -->
+        <div class="dpanel" id="dp-clients">
+          <h2 class="ptitle">Client <em>Brands</em></h2>
+          <p class="psub">Add or remove companies from the sliding brand panel on the website. Upload a logo or use initials.</p>
+          <div class="ecard" style="margin-bottom:20px">
+            <div class="ectitle">Add New Company</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 80px auto;gap:12px;align-items:end">
+              <div class="ef" style="margin:0"><label>Company Name</label><input id="nc-name" placeholder="e.g. Skyline Group"></div>
+              <div class="ef" style="margin:0"><label>Project Type</label><input id="nc-type" placeholder="e.g. Commercial, Residential"></div>
+              <div class="ef" style="margin:0"><label>Logo (optional)</label>
+                <div style="position:relative;width:52px;height:52px;background:#1a1a1a;border:1px dashed rgba(201,169,110,.2);border-radius:4px;overflow:hidden;cursor:pointer" title="Click to upload logo">
+                  <input type="file" accept="image/*" id="nc-logo" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+                  <div id="nc-logo-prev" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(201,169,110,.3)">+</div>
+                </div>
+              </div>
+              <button class="sbtn" style="white-space:nowrap;margin:0" onclick="addClient()">Add Company</button>
+            </div>
+          </div>
+          <div class="ecard">
+            <div class="ectitle">All Companies <span id="cl-count" style="font-size:11px;color:var(--gray);margin-left:8px;font-family:var(--fb);letter-spacing:0"></span></div>
+            <div id="clientAdminList" style="display:flex;flex-direction:column;gap:10px;margin-top:4px"></div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:12px;align-items:center">
+            <button class="sbtn" onclick="applyClients()">Apply to Site</button>
+            <span style="font-size:12px;color:var(--gray)">Changes go live on the website after applying.</span>
+          </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div class="dpanel" id="dp-settings">
+          <h2 class="ptitle">Account <em>Settings</em></h2>
+          <p class="psub">Manage your admin credentials.</p>
+          <div class="egrid">
+            <div class="ecard">
+              <div class="ectitle">Change Password</div>
+              <div class="ef"><label>Current Password</label><input type="password" id="p-cur" placeholder="••••••••"></div>
+              <div class="ef"><label>New Password</label><input type="password" id="p-new" placeholder="••••••••"></div>
+              <div class="ef"><label>Confirm New Password</label><input type="password" id="p-cf" placeholder="••••••••"></div>
+              <button class="sbtn" onclick="changePass()">Update Password</button>
+              <p class="ssucc" id="ss-pass">✓ Password changed!</p>
+            </div>
+            <div class="ecard">
+              <div class="ectitle">Danger Zone</div>
+              <p style="font-size:12px;color:var(--gray);margin-bottom:16px;line-height:1.7">Resets all unsaved changes.</p>
+              <button class="sbtn gh" style="border-color:rgba(231,76,60,.3);color:rgba(231,76,60,.7);width:100%" onclick="if(confirm('Reset everything to defaults?'))location.reload()">Reset All to Defaults</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /dmain -->
+    </div><!-- /dbody -->
+  </div>`;
+}
+
+function bindAdminEvents(){
+  // nothing extra needed — all onclick are global functions
+}
+
+// ============================================================
+//  ADMIN PANEL SWITCHING
+// ============================================================
+function showP(id, btn){
+  document.querySelectorAll('.dpanel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.dnb,.dsb-btn').forEach(b=>b.classList.remove('on'));
+  const p=document.getElementById('dp-'+id);
+  if(p) p.classList.add('on');
+  // highlight correct nav + sidebar button by matching text
+  document.querySelectorAll('.dnb').forEach(b=>{if(b.textContent.toLowerCase().trim().startsWith(id.slice(0,5)))b.classList.add('on');});
+  document.querySelectorAll('.dsb-btn').forEach(b=>{if(b.textContent.toLowerCase().trim().startsWith(id.slice(0,5)))b.classList.add('on');});
+  if(btn) btn.classList.add('on');
+  // special panel hooks
+  if(id==='messages'){renderMsgList();updateMsgBadge();}
+}
+
+// ============================================================
+//  NOTIFICATION & SUCCESS
+// ============================================================
+function notify(msg){const n=document.getElementById('notif');n.textContent=msg;n.classList.add('show');setTimeout(()=>n.classList.remove('show'),3500);}
+function succ(id){const el=document.getElementById('ss-'+id);if(!el)return;el.style.display='block';setTimeout(()=>el.style.display='none',2500);}
+
+// ============================================================
+//  LOGO
+// ============================================================
+function uploadLogo(input){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    logoData=e.target.result;
+    const prev=document.getElementById('lprev');
+    if(prev) prev.innerHTML=`<img src="${logoData}">`;
+    // update all logo images on public site
+    ['nlogoImg','fLogoImg'].forEach(id=>{const el=document.getElementById(id);if(el){el.src=logoData;el.style.display='block';}});
+    notify('Logo uploaded!');
+  };
+  r.readAsDataURL(file);
+}
+function removeLogo(){
+  logoData=null;
+  const prev=document.getElementById('lprev');
+  if(prev) prev.innerHTML='<span style="font-size:28px;opacity:.2">⬡</span>';
+  ['nlogoImg','fLogoImg'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  notify('Logo removed.');
+}
+
+// ============================================================
+//  BRANDING
+// ============================================================
+function saveBranding(){
+  const short=document.getElementById('b-short').value;
+  const acc=document.getElementById('b-accent').value;
+  const pre=short.replace(acc,'').trim();
+  const html=pre+(pre?' ':'')+'<b style="color:var(--gold);font-weight:500">'+acc+'</b>';
+  ['nlogoTxt','fLogoTxt'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
+  const fd=document.getElementById('s-fd');if(fd)fd.textContent=document.getElementById('b-fdesc').value;
+  succ('brand');notify('Branding applied across the site!');
+}
+function setColor(hex,swEl){
+  document.documentElement.style.setProperty('--gold',hex);
+  if(document.getElementById('cc'))document.getElementById('cc').value=hex;
+  document.querySelectorAll('.csw').forEach(s=>s.classList.remove('on'));
+  if(swEl)swEl.classList.add('on');
+  notify('Accent colour updated!');
+}
+function saveMeta(){
+  document.title=document.getElementById('b-title').value;
+  const cr=document.getElementById('s-cr');if(cr)cr.textContent=document.getElementById('b-copy').value;
+  succ('meta');
+}
+
+// ============================================================
+//  CONTENT EDITOR
+// ============================================================
+function saveC(type){
+  if(type==='hero'){
+    const ey=document.getElementById('s-ey'),ht=document.getElementById('s-ht'),hs=document.getElementById('s-hs');
+    if(ey)ey.textContent=document.getElementById('c-ey').value;
+    if(ht){const t=document.getElementById('c-ht').value;ht.innerHTML=t.replace('\n','<br>');}
+    if(hs)hs.textContent=document.getElementById('c-hs').value;
+  }else if(type==='stats'){
+    const v=[document.getElementById('c-s1').value,document.getElementById('c-s2').value,document.getElementById('c-s3').value,document.getElementById('c-s4').value];
+    ['s-s1','s-s2','s-s3'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=v[i];});
+    ['s-f1','s-f2','s-f3'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=v[i];});
+    const f4=document.getElementById('s-f4');if(f4)f4.textContent=v[3];
+  }else if(type==='about'){
+    const at=document.getElementById('s-at'),ap1=document.getElementById('s-ap1'),ap2=document.getElementById('s-ap2');
+    if(at)at.textContent=document.getElementById('c-at').value;
+    if(ap1)ap1.textContent=document.getElementById('c-ap1').value;
+    if(ap2)ap2.textContent=document.getElementById('c-ap2').value;
+  }else if(type==='contact'){
+    const m={adr:'s-adr',ph:'s-ph',em:'s-em',cd:'s-cd'};
+    Object.entries(m).forEach(([ci,si])=>{const el=document.getElementById(si);if(el)el.textContent=document.getElementById('c-'+ci).value;});
+  }
+  succ(type);notify('Content updated!');
+}
+
+// ============================================================
+//  SOCIAL LINKS
+// ============================================================
+function saveSocials(){
+  const map={ig:'sl-ig',li:'sl-li',fb:'sl-fb',pi:'sl-pi',hz:'sl-hz'};
+  Object.entries(map).forEach(([k,sid])=>{const el=document.getElementById(sid);if(el)el.href=document.getElementById('soc-'+k).value;});
+  const wa=document.getElementById('soc-wa').value.replace(/\D/g,'');
+  const waEl=document.getElementById('sl-wa');if(waEl)waEl.href='https://wa.me/'+wa;
+  succ('soc');notify('Social links updated!');
+}
+
+// ============================================================
+//  PROJECTS
+// ============================================================
+function renderProjects(){
+  const g=document.getElementById('pgrid');if(!g)return;
+  g.innerHTML=projects.map((p,i)=>`
+    <div class="pcard">
+      ${p.img?`<img src="${p.img}" class="pimg" alt="${p.name}">`:`<div class="pph"><svg width="${i<2?36:24}" height="${i<2?36:24}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>${i<2?'Upload Image':'Upload'}</div>`}
+      <div class="pov"><div class="pcat">${p.cat}</div><div class="pname">${p.name}</div><div class="ploc">${p.location}</div></div>
+    </div>`).join('');
+  const oc=document.getElementById('ov-pc');if(oc)oc.textContent=projects.length;
+}
+function renderAdminProjects(){
+  const list=document.getElementById('adminPList');if(!list)return;
+  list.innerHTML=projects.map((p,i)=>`
+    <div class="prow">
+      <div class="pthumb" title="Click to upload image">
+        <input type="file" accept="image/*" onchange="uploadPImg(this,${i})">
+        ${p.img?`<img src="${p.img}">`:`<div class="pthumb-ph">📷</div>`}
+      </div>
+      <input class="pinput" value="${p.cat}" placeholder="Category" onchange="projects[${i}].cat=this.value">
+      <input class="pinput" value="${p.name}" placeholder="Project Name" onchange="projects[${i}].name=this.value">
+      <input class="pinput" value="${p.location}" placeholder="Location" onchange="projects[${i}].location=this.value">
+      <button class="delbtn" onclick="removeProject(${i})">Remove</button>
+    </div>`).join('');
+}
+function uploadPImg(input,idx){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{projects[idx].img=e.target.result;renderAdminProjects();renderProjects();};
+  r.readAsDataURL(file);
+}
+function addProject(){projects.push({cat:'Residential',name:'New Project',location:'Pune',img:null});renderAdminProjects();notify('New project added. Edit details and apply to site.');}
+function removeProject(i){if(!confirm('Remove this project?'))return;projects.splice(i,1);renderAdminProjects();notify('Project removed.');}
+
+// ============================================================
+//  ABOUT IMAGES
+// ============================================================
+function setAboutImg(input,slot){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const src=e.target.result;
+    if(slot===1){
+      const w=document.getElementById('aim1');if(w)w.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover">`;
+      const p=document.getElementById('abp1');if(p)p.innerHTML=`<img src="${src}">`;
+    }else{
+      const w=document.getElementById('aim2');if(w)w.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover">`;
+      const p=document.getElementById('abp2');if(p)p.innerHTML=`<img src="${src}">`;
+    }
+    notify('About image updated!');
+  };
+  r.readAsDataURL(file);
+}
+function addLib(input){
+  const lib=document.getElementById('imgLib');if(!lib)return;
+  Array.from(input.files).forEach(file=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      const d=document.createElement('div');d.className='imgslot';
+      d.innerHTML=`<img src="${e.target.result}" alt=""><button class="imgrem" onclick="this.parentElement.remove()">×</button>`;
+      lib.appendChild(d);
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+// ============================================================
+//  PASSWORD
+// ============================================================
+function changePass(){
+  const cur=document.getElementById('p-cur').value,nw=document.getElementById('p-new').value,cf=document.getElementById('p-cf').value;
+  if(cur!==ADM_PASS){notify('Current password incorrect.');return;}
+  if(nw!==cf){notify('New passwords do not match.');return;}
+  if(nw.length<6){notify('Password must be at least 6 characters.');return;}
+  ADM_PASS=nw;succ('pass');
+  ['p-cur','p-new','p-cf'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+
+// ============================================================
+//  CONTACT FORM  — stores every submission
+// ============================================================
+let messages = []; // persists while page is open
+
+function submitForm(){
+  const name  = (document.getElementById('fn')||{}).value||'';
+  const email = (document.getElementById('fe')||{}).value||'';
+  const phone = (document.querySelector('#contact input[type=tel]')||{}).value||'';
+  const type  = (document.querySelector('#contact select')||{}).value||'';
+  const msg   = (document.querySelector('#contact textarea')||{}).value||'';
+
+  if(!name.trim()||!email.trim()){notify('Please fill in your name and email.');return;}
+
+  const entry = {
+    id: Date.now(),
+    name: name.trim(),
+    email: email.trim(),
+    phone: phone.trim(),
+    type: type||'Not specified',
+    message: msg.trim(),
+    date: new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    read: false
+  };
+  messages.unshift(entry); // newest first
+
+  // clear form
+  ['fn','fe'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const tel=document.querySelector('#contact input[type=tel]');if(tel)tel.value='';
+  const sel=document.querySelector('#contact select');if(sel)sel.value='';
+  const ta=document.querySelector('#contact textarea');if(ta)ta.value='';
+
+  notify('Thank you, '+name+'! We\'ll be in touch within 24 hours.');
+  // update badge if admin is open
+  updateMsgBadge();
+}
+
+// ============================================================
+//  MESSAGES — render, filter, detail, badge
+// ============================================================
+let msgFilter = 'all';
+
+function updateMsgBadge(){
+  const unread = messages.filter(m=>!m.read).length;
+  const total  = messages.length;
+  const b1=document.getElementById('msg-badge');
+  if(b1){b1.textContent=unread;b1.style.display=unread>0?'inline':'none';}
+  const b2=document.getElementById('msg-badge-sb');
+  if(b2){b2.textContent=unread;b2.style.display=unread>0?'inline':'none';}
+  const mc=document.getElementById('ov-mc');if(mc)mc.textContent=unread;
+  const tm=document.getElementById('ov-tm');if(tm)tm.textContent=total;
+}
+
+function renderMsgList(){
+  const list=document.getElementById('msgList');
+  if(!list) return;
+  const search=(document.getElementById('msg-search')||{}).value||'';
+  const q=search.toLowerCase();
+
+  let filtered=messages.filter(function(m){
+    if(msgFilter==='unread' && m.read) return false;
+    if(msgFilter==='read'   && !m.read) return false;
+    if(q && !m.name.toLowerCase().includes(q) && !m.email.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if(!filtered.length){
+    const emptyMsg = q ? 'No messages match your search.'
+      : msgFilter==='unread' ? 'No unread messages.'
+      : 'No messages yet. Submissions from the contact form will appear here.';
+    list.innerHTML='<div class="msg-empty"><div class="msg-empty-icon">📭</div><div>'+emptyMsg+'</div></div>';
+    return;
+  }
+
+  list.innerHTML=filtered.map(function(m){
+    return '<div class="msg-card '+(m.read?'':'unread')+'" onclick="openMsg('+m.id+')">'
+      +'<div class="msg-card-inner">'
+      +'<div>'
+      +'<div class="msg-header">'
+      +'<div class="msg-avatar">'+m.name.charAt(0).toUpperCase()+'</div>'
+      +'<div class="msg-name">'+m.name+'</div>'
+      +(m.read?'':'<div class="msg-unread-dot" title="Unread"></div>')
+      +'<span class="msg-type-tag">'+m.type+'</span>'
+      +'</div>'
+      +'<div class="msg-meta">'
+      +'<span>✉ '+m.email+'</span>'
+      +(m.phone ? '<span>📞 '+m.phone+'</span>' : '')
+      +'</div>'
+      +'<div class="msg-preview">'+(m.message||'<em style="opacity:.4">No message body</em>')+'</div>'
+      +'</div>'
+      +'<div style="text-align:right;display:flex;flex-direction:column;gap:8px;align-items:flex-end">'
+      +'<div class="msg-date">'+m.date+'</div>'
+      +'<button onclick="event.stopPropagation();deleteMsg('+m.id+')" style="background:transparent;border:none;color:rgba(231,76,60,.4);cursor:pointer;font-size:18px;line-height:1;padding:0" title="Delete">✕</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function filterMsgs(type, btn){
+  msgFilter=type;
+  document.querySelectorAll('.msg-filter-btn').forEach(function(b){b.classList.remove('on');});
+  if(btn) btn.classList.add('on');
+  renderMsgList();
+}
+
+function openMsg(id){
+  var m=messages.find(function(x){return x.id===id;});
+  if(!m) return;
+  m.read=true;
+  updateMsgBadge();
+  renderMsgList();
+
+  document.getElementById('md-name').textContent=m.name;
+  document.getElementById('md-meta').innerHTML=
+    '<div class="md-item"><div class="md-item-label">Email</div><div class="md-item-val">'+m.email+'</div></div>'
+    +'<div class="md-item"><div class="md-item-label">Phone</div><div class="md-item-val">'+(m.phone||'—')+'</div></div>'
+    +'<div class="md-item"><div class="md-item-label">Project Type</div><div class="md-item-val">'+m.type+'</div></div>'
+    +'<div class="md-item"><div class="md-item-label">Received</div><div class="md-item-val">'+m.date+'</div></div>';
+  document.getElementById('md-msg').textContent=m.message||'No message body provided.';
+  document.getElementById('md-reply').href='mailto:'+m.email+'?subject=Re: Your enquiry — Key Project Architecture&body=Dear '+m.name+',%0A%0AThank you for reaching out.%0A%0A';
+  document.getElementById('md-del').onclick=function(){deleteMsg(id);closeMsgModal();};
+
+  var modal=document.getElementById('msgModal');
+  modal.style.display='flex';
+}
+
+function closeMsgModal(){
+  var modal=document.getElementById('msgModal');
+  if(modal) modal.style.display='none';
+}
+
+document.addEventListener('click',function(e){
+  var modal=document.getElementById('msgModal');
+  if(modal && e.target===modal) closeMsgModal();
+});
+
+function deleteMsg(id){
+  messages=messages.filter(function(m){return m.id!==id;});
+  updateMsgBadge();
+  renderMsgList();
+}
+
+function markAllRead(){
+  messages.forEach(function(m){m.read=true;});
+  updateMsgBadge();
+  renderMsgList();
+}
+
+// ============================================================
+//  CLIENTS STATE
+// ============================================================
+let clients = [
+  {name:'TechCorp India',    type:'Corporate Office', img:null},
+  {name:'Meridian Homes',    type:'Residential',      img:null},
+  {name:'Skyline Group',     type:'Commercial',       img:null},
+  {name:'Atelier Ventures',  type:'Mixed Use',        img:null},
+  {name:'Pinnacle Realty',   type:'Real Estate',      img:null},
+  {name:'Zenith Hotels',     type:'Hospitality',      img:null},
+  {name:'Nakshatra Corp',    type:'Institutional',    img:null},
+  {name:'Veda Builders',     type:'Residential',      img:null},
+  {name:'Kiran Properties',  type:'Real Estate',      img:null},
+  {name:'Studio Delta',      type:'Interior',         img:null},
+  {name:'Omni Developers',   type:'Commercial',       img:null},
+  {name:'Luminos Urban',     type:'Urban Planning',   img:null},
+  {name:'Regal Spaces',      type:'Residential',      img:null},
+  {name:'Horizon Infra',     type:'Infrastructure',   img:null},
+  {name:'Citrus Studios',    type:'Interior',         img:null},
+  {name:'BluVista Corp',     type:'Corporate',        img:null},
+];
+let newClientLogoData = null;
+
+// get initials from name
+function initials(name){
+  const w=name.trim().split(' ');
+  return w.length>=2 ? (w[0][0]+w[w.length-1][0]).toUpperCase() : name.slice(0,2).toUpperCase();
+}
+
+// render admin client list
+function renderAdminClients(){
+  const list=document.getElementById('clientAdminList');
+  const count=document.getElementById('cl-count');
+  if(!list) return;
+  if(count) count.textContent=clients.length+' companies';
+  list.innerHTML=clients.map((c,i)=>`
+    <div style="display:grid;grid-template-columns:52px 1fr 1fr auto;gap:12px;align-items:center;background:#111;border:1px solid rgba(201,169,110,.08);padding:12px 16px;border-radius:2px">
+      <div style="width:52px;height:52px;background:#1a1a1a;border:1px dashed rgba(201,169,110,.15);border-radius:4px;overflow:hidden;position:relative;cursor:pointer" title="Click to change logo">
+        <input type="file" accept="image/*" onchange="changeClientLogo(this,${i})" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+        ${c.img
+          ? `<img src="${c.img}" style="width:100%;height:100%;object-fit:contain;padding:6px">`
+          : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:18px;color:var(--gold)">${initials(c.name)}</div>`
+        }
+      </div>
+      <input class="pinput" value="${c.name}" placeholder="Company name" onchange="clients[${i}].name=this.value">
+      <input class="pinput" value="${c.type}" placeholder="Project type" onchange="clients[${i}].type=this.value">
+      <button class="delbtn" onclick="removeClient(${i})">Remove</button>
+    </div>`).join('');
+}
+
+// render the live brand slider on site
+function renderBrandSlider(){
+  const t1=document.getElementById('brandTrack1');
+  const t2=document.getElementById('brandTrack2');
+  if(!t1||!t2) return;
+  // split clients between two tracks
+  const half=Math.ceil(clients.length/2);
+  const track1=clients.slice(0,half);
+  const track2=clients.slice(half);
+  // need at least enough cards to fill width — duplicate until we have 8+
+  function ensureEnough(arr){
+    if(!arr.length) return [];
+    while(arr.length<8) arr=[...arr,...arr];
+    return arr;
+  }
+  const t1data=ensureEnough([...track1]);
+  const t2data=ensureEnough([...track2]);
+  function cardHTML(c){
+    return `<div class="brand-card">
+      <div class="brand-logo-box">
+        ${c.img
+          ? `<img src="${c.img}" style="width:100%;height:100%;object-fit:contain;padding:8px">`
+          : `<span class="brand-initials">${initials(c.name)}</span>`
+        }
+      </div>
+      <div class="brand-name">${c.name}</div>
+      <div class="brand-type">${c.type}</div>
+    </div>`;
+  }
+  // double for seamless loop
+  t1.innerHTML=[...t1data,...t1data].map(cardHTML).join('');
+  t2.innerHTML=[...t2data,...t2data].map(cardHTML).join('');
+}
+
+function addClient(){
+  const name=(document.getElementById('nc-name')||{}).value||'';
+  const type=(document.getElementById('nc-type')||{}).value||'';
+  if(!name.trim()){notify('Please enter a company name.');return;}
+  clients.push({name:name.trim(), type:type.trim()||'Client', img:newClientLogoData});
+  newClientLogoData=null;
+  // reset form
+  const nn=document.getElementById('nc-name');if(nn)nn.value='';
+  const nt=document.getElementById('nc-type');if(nt)nt.value='';
+  const prev=document.getElementById('nc-logo-prev');if(prev)prev.innerHTML='+';
+  renderAdminClients();
+  notify('Company added! Click "Apply to Site" to go live.');
+}
+
+function removeClient(i){
+  if(!confirm('Remove "'+clients[i].name+'" from the brand panel?')) return;
+  clients.splice(i,1);
+  renderAdminClients();
+  notify('Company removed. Click "Apply to Site" to go live.');
+}
+
+function changeClientLogo(input,idx){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{clients[idx].img=e.target.result;renderAdminClients();};
+  r.readAsDataURL(file);
+}
+
+function applyClients(){
+  renderBrandSlider();
+  notify('Brand panel updated on site!');
+}
+
+// handle new client logo preview in the add form
+document.addEventListener('change',function(e){
+  if(e.target && e.target.id==='nc-logo'){
+    const file=e.target.files[0];if(!file)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      newClientLogoData=ev.target.result;
+      const prev=document.getElementById('nc-logo-prev');
+      if(prev)prev.innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:contain;padding:4px">`;
+    };
+    r.readAsDataURL(file);
+  }
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+renderProjects();
+renderBrandSlider();
+</script>
+</body>
+</html>
