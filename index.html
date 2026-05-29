@@ -5,6 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Key Project Architecture</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>emailjs.init("Ci-We-c57PQqX_JRE");</script>
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, getDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCuWeZCuH-SGNKK7YDynUruvy2s1n3SbyQ",
+    authDomain: "keyproject-adb32.firebaseapp.com",
+    projectId: "keyproject-adb32",
+    storageBucket: "keyproject-adb32.firebasestorage.app",
+    messagingSenderId: "938805853774",
+    appId: "1:938805853774:web:50ca6be7ada98e772d8d1f"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Expose to global scope
+  window._auth = auth;
+  window._db = db;
+  window._signIn = signInWithEmailAndPassword;
+  window._signOut = signOut;
+  window._onAuthStateChanged = onAuthStateChanged;
+  window._collection = collection;
+  window._addDoc = addDoc;
+  window._getDocs = getDocs;
+  window._deleteDoc = deleteDoc;
+  window._doc = doc;
+  window._setDoc = setDoc;
+  window._getDoc = getDoc;
+  window._onSnapshot = onSnapshot;
+  window._query = query;
+  window._orderBy = orderBy;
+
+  // Auth state listener
+  onAuthStateChanged(auth, (user) => {
+    window._currentUser = user;
+    if (user && window._onAuthReady) window._onAuthReady(user);
+  });
+</script>
 <style>
 :root{--black:#0a0a0a;--white:#f5f2ee;--gold:#c9a96e;--gold-light:#e8d5b0;--dark:#141414;--gray:#888;--lg:#ccc;--fd:'Cormorant Garamond',serif;--fb:'DM Sans',sans-serif;--tr:0.4s cubic-bezier(.25,.46,.45,.94);}
 *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
@@ -632,7 +677,7 @@ footer{padding:60px 60px 40px;border-top:1px solid rgba(201,169,110,.1);}
     <div class="fc"><h4>Legal</h4><ul><li><a href="#" onclick="goPrivacy()">Privacy Policy</a></li><li><a href="#" onclick="goTerms()">Terms of Service</a></li></ul></div>
   </div>
   <div class="fbot">
-    <p id="s-cr">© 2024 Key Project Architecture. All rights reserved.</p>
+    <p id="s-cr">© 2026 Key Project Architecture. All rights reserved.</p>
     <div class="fleg"><a href="#" onclick="goPrivacy()">Privacy Policy</a><a href="#" onclick="goTerms()">Terms of Service</a></div>
   </div>
 </footer>
@@ -658,7 +703,7 @@ footer{padding:60px 60px 40px;border-top:1px solid rgba(201,169,110,.1);}
     <h2>7. Your Rights</h2><p>You may request access, correction, or deletion of your data. Contact: <span style="color:var(--gold)">hello@keyprojectarch.in</span></p>
     <h2>8. Contact</h2><p>Key Project Architecture · 123 Design District, Koregaon Park, Pune 411001 · +91 98765 43210</p>
   </div>
-  <footer style="padding:24px 60px;border-top:1px solid rgba(201,169,110,.1);display:flex;justify-content:space-between;"><p style="font-size:12px;color:var(--gray)">© 2024 Key Project Architecture</p><div style="display:flex;gap:20px;"><a href="#" onclick="goPrivacy()" style="font-size:12px;color:var(--gold);text-decoration:none;cursor:none;">Privacy Policy</a><a href="#" onclick="goTerms()" style="font-size:12px;color:var(--gray);text-decoration:none;cursor:none;">Terms</a></div></footer>
+  <footer style="padding:24px 60px;border-top:1px solid rgba(201,169,110,.1);display:flex;justify-content:space-between;"><p style="font-size:12px;color:var(--gray)">© 2026 Key Project Architecture</p><div style="display:flex;gap:20px;"><a href="#" onclick="goPrivacy()" style="font-size:12px;color:var(--gold);text-decoration:none;cursor:none;">Privacy Policy</a><a href="#" onclick="goTerms()" style="font-size:12px;color:var(--gray);text-decoration:none;cursor:none;">Terms</a></div></footer>
 </div>
 
 <div id="terms" style="display:none">
@@ -690,7 +735,7 @@ footer{padding:60px 60px 40px;border-top:1px solid rgba(201,169,110,.1);}
 // ============================================================
 //  STATE
 // ============================================================
-let ADM_PASS = 'admin123';
+let ADM_PASS = 'admin123'; // legacy fallback
 let isLoggedIn = false;
 let logoData = null;
 let projects = [
@@ -700,6 +745,84 @@ let projects = [
   {cat:'Institutional',name:'The Learning Hub',  location:'Nashik',             img:null},
   {cat:'Renovation',  name:'Heritage Bungalow',  location:'Pune',               img:null},
 ];
+let messages = JSON.parse(localStorage.getItem('kpa_messages') || '[]');
+
+// ============================================================
+//  WHATSAPP NOTIFICATION (CallMeBot)
+// ============================================================
+const WA_NUMBER = '918767374472'; // your WhatsApp number with country code
+const WA_APIKEY = ''; // add your CallMeBot API key here after setup
+
+function sendWhatsApp(name, email, phone, msg){
+  if(!WA_APIKEY) return;
+  const text = encodeURIComponent(`New Enquiry!\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${msg}`);
+  fetch(`https://api.callmebot.com/whatsapp.php?phone=${WA_NUMBER}&text=${text}&apikey=${WA_APIKEY}`)
+    .catch(e=>console.log('WhatsApp notification failed:', e));
+}
+
+// ============================================================
+//  FIREBASE DATA FUNCTIONS
+// ============================================================
+async function loadFirebaseData(){
+  if(!window._db) return;
+  try {
+    // Load messages from Firestore
+    const q = window._query(window._collection(window._db, 'messages'), window._orderBy('timestamp', 'desc'));
+    window._onSnapshot(q, (snapshot)=>{
+      messages = snapshot.docs.map(d=>({id:d.id, ...d.data()}));
+      localStorage.setItem('kpa_messages', JSON.stringify(messages));
+      updateMsgBadge();
+      const ml=document.getElementById('msgList');
+      if(ml) renderMsgList();
+    });
+
+    // Load projects from Firestore
+    const pSnap = await window._getDocs(window._collection(window._db, 'projects'));
+    if(!pSnap.empty){
+      projects = pSnap.docs.map(d=>({id:d.id, ...d.data()}));
+      renderProjects();
+      renderAdminProjects();
+    }
+
+    // Load site settings
+    const settingsDoc = await window._getDoc(window._doc(window._db, 'settings', 'site'));
+    if(settingsDoc.exists()){
+      const s = settingsDoc.data();
+      if(s.logoData){logoData=s.logoData;}
+    }
+  } catch(e){ console.log('Firebase load error:', e); }
+}
+
+async function saveMessageToFirebase(entry){
+  if(!window._db) return;
+  try {
+    await window._addDoc(window._collection(window._db, 'messages'), {
+      ...entry,
+      timestamp: Date.now()
+    });
+  } catch(e){ console.log('Firebase save error:', e); }
+}
+
+async function deleteMessageFromFirebase(id){
+  if(!window._db) return;
+  try {
+    await window._deleteDoc(window._doc(window._db, 'messages', id));
+  } catch(e){ console.log('Firebase delete error:', e); }
+}
+
+async function saveProjectsToFirebase(){
+  if(!window._db) return;
+  try {
+    for(const p of projects){
+      if(p.id){
+        await window._setDoc(window._doc(window._db, 'projects', p.id), p);
+      } else {
+        const ref = await window._addDoc(window._collection(window._db, 'projects'), p);
+        p.id = ref.id;
+      }
+    }
+  } catch(e){ console.log('Firebase projects save error:', e); }
+}
 
 // ============================================================
 //  CURSOR
@@ -790,12 +913,11 @@ function mountLogin(){
         <span id="alLogoTxt">KEY <span>PROJECT</span></span>
       </div>
       <p class="al-sub">Admin Portal — Restricted Access</p>
-      <div class="al-field"><label>Username</label><input type="text" id="aUser" placeholder="Username" autocomplete="username"></div>
-      <div class="al-field"><label>Password</label><input type="password" id="aPass" placeholder="Password" autocomplete="current-password"></div>
+      <div class="al-field"><label>Email</label><input type="email" id="aUser" placeholder="admin@keyproject.in" autocomplete="email"></div>
+      <div class="al-field"><label>Password</label><input type="password" id="aPass" placeholder="••••••••" autocomplete="current-password"></div>
       <button class="al-btn" onclick="doLogin()">Sign In →</button>
       <p class="al-err" id="aErr">Invalid credentials. Please try again.</p>
       <span class="al-back" onclick="destroyAdmin();goSite()">← Return to Website</span>
-      <div class="al-hint">Default login: <strong>admin</strong> / <strong>admin123</strong></div>
     </div>
   </div>`;
   document.getElementById('sitenav').style.display='none';
@@ -808,17 +930,32 @@ function mountLogin(){
 }
 
 function doLogin(){
-  const u=(document.getElementById('aUser')||{}).value||'';
-  const p=(document.getElementById('aPass')||{}).value||'';
-  if(u.trim()==='admin' && p===ADM_PASS){
-    isLoggedIn=true;
-    mountAdmin();
-  } else {
-    const err=document.getElementById('aErr');
-    if(err) err.style.display='block';
+  const email=(document.getElementById('aUser')||{}).value||'';
+  const pass=(document.getElementById('aPass')||{}).value||'';
+  const err=document.getElementById('aErr');
+  const btn=document.querySelector('.al-btn');
+  if(btn){btn.textContent='Signing in...';btn.disabled=true;}
+  if(!window._auth){
+    if(err){err.textContent='Firebase not loaded. Please refresh.';err.style.display='block';}
+    if(btn){btn.textContent='Sign In →';btn.disabled=false;}
+    return;
   }
+  window._signIn(window._auth, email, pass)
+    .then((userCredential)=>{
+      isLoggedIn=true;
+      window._currentUser=userCredential.user;
+      mountAdmin();
+      loadFirebaseData();
+    })
+    .catch((error)=>{
+      if(err){err.textContent='Invalid credentials. Please try again.';err.style.display='block';}
+      if(btn){btn.textContent='Sign In →';btn.disabled=false;}
+    });
 }
-function doLogout(){destroyAdmin();}
+function doLogout(){
+  if(window._auth) window._signOut(window._auth);
+  destroyAdmin();
+}
 
 // ============================================================
 //  SECRET ADMIN ROUTE
@@ -1003,7 +1140,7 @@ function buildAdminHTML(){
             <div class="ecard">
               <div class="ectitle">Page Meta</div>
               <div class="ef"><label>Browser Tab Title</label><input id="b-title" value="Key Project Architecture"></div>
-              <div class="ef"><label>Copyright Line</label><input id="b-copy" value="© 2024 Key Project Architecture. All rights reserved."></div>
+              <div class="ef"><label>Copyright Line</label><input id="b-copy" value="© 2026 Key Project Architecture. All rights reserved."></div>
               <button class="sbtn" onclick="saveMeta()">Save</button>
               <p class="ssucc" id="ss-meta">✓ Saved!</p>
             </div>
@@ -1147,15 +1284,18 @@ function buildAdminHTML(){
         <!-- SETTINGS -->
         <div class="dpanel" id="dp-settings">
           <h2 class="ptitle">Account <em>Settings</em></h2>
-          <p class="psub">Manage your admin credentials.</p>
+          <p class="psub">Manage your admin credentials and team access.</p>
           <div class="egrid">
             <div class="ecard">
               <div class="ectitle">Change Password</div>
-              <div class="ef"><label>Current Password</label><input type="password" id="p-cur" placeholder="••••••••"></div>
-              <div class="ef"><label>New Password</label><input type="password" id="p-new" placeholder="••••••••"></div>
-              <div class="ef"><label>Confirm New Password</label><input type="password" id="p-cf" placeholder="••••••••"></div>
-              <button class="sbtn" onclick="changePass()">Update Password</button>
-              <p class="ssucc" id="ss-pass">✓ Password changed!</p>
+              <p style="font-size:12px;color:var(--gray);margin-bottom:16px;line-height:1.7">Password is managed securely via Firebase. To change your password, use the Firebase Console or contact your administrator.</p>
+              <a href="https://console.firebase.google.com" target="_blank" class="sbtn" style="display:inline-block;text-decoration:none;text-align:center;">Open Firebase Console →</a>
+            </div>
+            <div class="ecard">
+              <div class="ectitle">Admin Users</div>
+              <p style="font-size:12px;color:var(--gray);margin-bottom:16px;line-height:1.7">Add or remove admin users via Firebase Authentication Console.</p>
+              <p style="font-size:12px;color:var(--gold);margin-bottom:8px;">Current admin: <strong id="currentAdminEmail" style="color:var(--white)">Loading...</strong></p>
+              <a href="https://console.firebase.google.com/project/keyproject-adb32/authentication/users" target="_blank" class="sbtn" style="display:inline-block;text-decoration:none;text-align:center;">Manage Admin Users →</a>
             </div>
             <div class="ecard">
               <div class="ectitle">Danger Zone</div>
@@ -1171,7 +1311,11 @@ function buildAdminHTML(){
 }
 
 function bindAdminEvents(){
-  // nothing extra needed — all onclick are global functions
+  // Show current admin email
+  setTimeout(()=>{
+    const el=document.getElementById('currentAdminEmail');
+    if(el && window._currentUser) el.textContent=window._currentUser.email;
+  },500);
 }
 
 // ============================================================
@@ -1364,8 +1508,7 @@ function changePass(){
 // ============================================================
 //  CONTACT FORM  — stores every submission
 // ============================================================
-// Load messages from localStorage so they survive page refresh
-let messages = JSON.parse(localStorage.getItem('kpa_messages') || '[]');
+// messages already declared above with localStorage
 
 function submitForm(){
   const name  = (document.getElementById('fn')||{}).value||'';
@@ -1386,8 +1529,25 @@ function submitForm(){
     date: new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
     read: false
   };
-  messages.unshift(entry); // newest first
+
+  // Save to Firebase
+  saveMessageToFirebase(entry);
+
+  // Save to localStorage as backup
+  messages.unshift(entry);
   localStorage.setItem('kpa_messages', JSON.stringify(messages));
+
+  // Send email via EmailJS
+  emailjs.send("service_mt8o7f8", "template_sio4gu5", {
+    from_name: name.trim(),
+    from_email: email.trim(),
+    phone: phone.trim(),
+    project_type: type||'Not specified',
+    message: msg.trim()
+  }).then(()=>console.log('Email sent!')).catch(e=>console.log('Email failed:',e));
+
+  // Send WhatsApp notification
+  sendWhatsApp(name.trim(), email.trim(), phone.trim(), msg.trim());
 
   // clear form
   ['fn','fe'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -1473,7 +1633,6 @@ function openMsg(id){
   var m=messages.find(function(x){return x.id===id;});
   if(!m) return;
   m.read=true;
-  localStorage.setItem('kpa_messages', JSON.stringify(messages));
   updateMsgBadge();
   renderMsgList();
 
@@ -1502,6 +1661,10 @@ document.addEventListener('click',function(e){
 });
 
 function deleteMsg(id){
+  // Delete from Firebase if it has a Firebase doc id
+  const msg = messages.find(m=>m.id===id);
+  if(msg && msg.firebaseId) deleteMessageFromFirebase(msg.firebaseId);
+  else deleteMessageFromFirebase(String(id));
   messages=messages.filter(function(m){return m.id!==id;});
   localStorage.setItem('kpa_messages', JSON.stringify(messages));
   updateMsgBadge();
@@ -1510,7 +1673,6 @@ function deleteMsg(id){
 
 function markAllRead(){
   messages.forEach(function(m){m.read=true;});
-  localStorage.setItem('kpa_messages', JSON.stringify(messages));
   updateMsgBadge();
   renderMsgList();
 }
