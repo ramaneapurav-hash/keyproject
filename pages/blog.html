@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark-gold">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Key Project Architecture | Pune</title>
+<meta name="description" content="Architecture insights, design tips, and project stories from Key Project Architecture, Pune. Est. 2003.">
+<meta name="keywords" content="architecture blog pune, interior design tips pune, how to build house pune, architect blog india">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.blog-hero{padding:140px 60px 80px;}
+.blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;padding:0 60px 120px;}
+.blog-card{background:var(--t-card);border:1px solid var(--t-border);overflow:hidden;transition:all .3s;cursor:pointer;}
+.blog-card:hover{border-color:var(--t-accent);transform:translateY(-4px);}
+.blog-thumb{height:220px;background:var(--t-surface);display:flex;align-items:center;justify-content:center;color:var(--t-muted);font-size:48px;overflow:hidden;}
+.blog-thumb img{width:100%;height:100%;object-fit:cover;}
+.blog-body{padding:28px;}
+.blog-tag{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--t-accent);margin-bottom:10px;}
+.blog-title{font-family:var(--fd);font-size:22px;font-weight:400;line-height:1.3;margin-bottom:12px;color:var(--t-text);}
+.blog-excerpt{font-size:13px;color:var(--t-muted);line-height:1.8;margin-bottom:20px;}
+.blog-meta{font-size:11px;color:var(--t-muted);display:flex;gap:16px;}
+@media(max-width:900px){
+  .blog-grid{grid-template-columns:1fr 1fr;padding:0 24px 80px;}
+  .blog-hero{padding:120px 24px 60px;}
+}
+@media(max-width:600px){
+  .blog-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav id="sitenav" class="sc" style="background:rgba(10,10,10,.98)!important;border-bottom:1px solid rgba(201,169,110,.1);">
+  <a href="../index.html" class="nlogo">KEY <b style="color:var(--t-accent);font-weight:500">PROJECT</b></a>
+  <ul class="nlinks">
+    <li><a href="../index.html#about">About</a></li>
+    <li><a href="../index.html#projects">Projects</a></li>
+    <li><a href="../index.html#services">Services</a></li>
+    <li><a href="blog.html" style="color:var(--t-accent)">Blog</a></li>
+    <li><a href="../index.html#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<div class="blog-hero">
+  <p class="eyebrow">Insights & Ideas</p>
+  <h1 class="stitle">Our <em>Blog</em></h1>
+  <p style="font-size:14px;color:var(--t-muted);margin-top:16px;max-width:500px;line-height:1.8;">Architecture tips, design inspiration, project stories, and industry insights from the Key Project team.</p>
+</div>
+
+<div class="blog-grid" id="blogGrid">
+  <!-- Posts loaded from Firebase + static fallbacks -->
+</div>
+
+<!-- Firebase for blog -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  const app = initializeApp({apiKey:"AIzaSyCuWeZCuH-SGNKK7YDynUruvy2s1n3SbyQ",authDomain:"keyproject-adb32.firebaseapp.com",projectId:"keyproject-adb32",storageBucket:"keyproject-adb32.firebasestorage.app",messagingSenderId:"938805853774",appId:"1:938805853774:web:50ca6be7ada98e772d8d1f"});
+  const db = getFirestore(app);
+  const staticPosts = [
+    {title:'5 Things to Consider Before Building Your Home in Pune', cat:'Residential', excerpt:'Planning to build your dream home? Here are the five most important factors architects consider before laying the first brick in Pune.', date:'June 2026', img:null},
+    {title:'How to Choose the Right Architect for Your Commercial Project', cat:'Commercial', excerpt:'Not all architects specialise in commercial spaces. Here\'s what to look for when selecting a firm for your office or retail project.', date:'May 2026', img:null},
+    {title:'Top Interior Design Trends in 2026', cat:'Interior Design', excerpt:'From biophilic design to maximalist interiors — discover the trends shaping Indian homes and offices in 2026.', date:'April 2026', img:null},
+    {title:'Healthcare Architecture — Special Requirements', cat:'Healthcare', excerpt:'Designing hospitals and clinics requires a unique set of considerations. Here\'s what matters most.', date:'March 2026', img:null},
+    {title:'What is Project Management in Construction?', cat:'Industrial', excerpt:'From timelines to contractor coordination — a complete guide to project management in construction.', date:'February 2026', img:null},
+    {title:'How Long Does It Take to Build a House in Pune?', cat:'Guide', excerpt:'Timeline expectations, approval processes, and construction phases — everything you need to know.', date:'January 2026', img:null},
+  ];
+  const icons = {'Residential':'🏠','Commercial':'🏢','Industrial':'🏭','Healthcare':'🏥','Interior Design':'🎨','Guide':'⏳'};
+  function cardHTML(p, delay) {
+    return `<div class="blog-card rv${delay ? ' d'+delay : ''}">
+      <div class="blog-thumb">${p.img ? `<img src="${p.img}" alt="${p.title}">` : (icons[p.cat] || '📝')}</div>
+      <div class="blog-body">
+        <div class="blog-tag">${p.cat}</div>
+        <div class="blog-title">${p.title}</div>
+        <div class="blog-excerpt">${p.excerpt}</div>
+        <div class="blog-meta"><span>${p.date}</span><span>5 min read</span></div>
+      </div>
+    </div>`;
+  }
+  async function loadPosts() {
+    const grid = document.getElementById('blogGrid'); if (!grid) return;
+    try {
+      const q = query(collection(db, 'blogPosts'), orderBy('timestamp', 'desc'));
+      const snap = await getDocs(q);
+      const fbPosts = snap.docs.map(d => d.data());
+      const allPosts = [...fbPosts, ...staticPosts];
+      grid.innerHTML = allPosts.map((p, i) => cardHTML(p, i % 3)).join('');
+      // Re-observe for animations
+      const rvObs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vi'); rvObs.unobserve(e.target); } }), {threshold:0.1});
+      grid.querySelectorAll('.rv').forEach(el => rvObs.observe(el));
+    } catch(e) {
+      grid.innerHTML = staticPosts.map((p, i) => cardHTML(p, i % 3)).join('');
+    }
+  }
+  loadPosts();
+</script>
+
+<footer style="padding:40px 60px;border-top:1px solid var(--t-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+  <p style="font-size:12px;color:var(--t-muted)">© 2026 Key Project Architecture. All rights reserved.</p>
+  <a href="../index.html" style="font-size:12px;color:var(--t-accent);text-decoration:none;letter-spacing:1px;">← Back to Website</a>
+</footer>
+
+<script>
+// Load saved theme
+(function(){
+  const t = localStorage.getItem('kpa_theme') || 'dark-gold';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+// Scroll reveal
+const rvObs = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) { e.target.classList.add('vi'); rvObs.unobserve(e.target); }
+}), { threshold: 0.1 });
+document.querySelectorAll('.rv').forEach(el => rvObs.observe(el));
+</script>
+</body>
+</html>
